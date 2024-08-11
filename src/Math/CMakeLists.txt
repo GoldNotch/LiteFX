@@ -7,6 +7,36 @@
 PROJECT(LiteFX.Math VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
+# Add shared library project.
+ADD_LIBRARY(${PROJECT_NAME} STATIC ".natvis")
+
+# Setup project properties.
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+    FOLDER "SDK"
+    VERSION ${LITEFX_VERSION}
+    SOVERSION ${LITEFX_YEAR}
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
+    MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
+)
+
+TARGET_SOURCES(${PROJECT_NAME}
+PRIVATE
+    "include/litefx/vector.hpp"
+    "include/litefx/matrix.hpp"
+    "include/litefx/math.hpp"
+    "src/size.cpp"
+    "src/rect.cpp"
+)
+
+# Setup target include directories.
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} 
+    PRIVATE 
+        "src/"
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
+)
+
 # Find optional dependencies.
 SET(DEPENDENCY_PACKAGES "")
 
@@ -20,57 +50,12 @@ IF(LITEFX_BUILD_WITH_DIRECTX_MATH)
     LIST(APPEND DEPENDENCY_PACKAGES "Microsoft::DirectXMath")
 ENDIF(LITEFX_BUILD_WITH_DIRECTX_MATH)
 
-# Collect header & source files.
-SET(VULKAN_MATH_HEADERS
-    "include/litefx/vector.hpp"
-    "include/litefx/matrix.hpp"
-    "include/litefx/math.hpp"
-)
-
-SET(VULKAN_MATH_SOURCES
-    "src/size.cpp"
-    "src/rect.cpp"
-)
-
-# Add shared library project.
-ADD_LIBRARY(${PROJECT_NAME}
-    ${VULKAN_MATH_HEADERS}
-    ${VULKAN_MATH_SOURCES}
-
-    ".natvis"
-)
-
-# Create source groups for better code organization.
-SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_MATH_HEADERS} ${VULKAN_MATH_SOURCES})
-
-# Setup project properties.
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-    FOLDER "SDK"
-    VERSION ${LITEFX_VERSION}
-    SOVERSION ${LITEFX_YEAR}
-    PUBLIC_HEADER "${VULKAN_MATH_HEADERS}"
-    MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
-    MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
-)
-
-# Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} 
-    PRIVATE 
-        "src/"
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
-)
-
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core ${DEPENDENCY_PACKAGES}
+PUBLIC 
+    LiteFX.Core
+    ${DEPENDENCY_PACKAGES}
 )
-
-# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
-IF(NOT BUILD_SHARED_LIBS)
-    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_MATH_API=)
-ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Re-use pre-compiled core header.
 IF(LITEFX_BUILD_PRECOMPILED_HEADERS)

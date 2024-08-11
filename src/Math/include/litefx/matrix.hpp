@@ -216,7 +216,7 @@ public:
   /// <param name="row">The row of the element.</param>
   /// <param name="col">The column of the element.</param>
   /// <returns>The scalar value at the provided row and column.</returns>
-  constexpr scalar_type at(size_t row, size_t col) const noexcept
+  constexpr const scalar_type & at(size_t row, size_t col) const & noexcept
   {
     assert(row < mat_rows && col < mat_cols);
 
@@ -229,7 +229,7 @@ public:
   /// <param name="row">The row of the element.</param>
   /// <param name="col">The column of the element.</param>
   /// <returns>A reference of the scalar value at the provided row and column.</returns>
-  constexpr scalar_type & at(size_t row, size_t col) noexcept
+  constexpr scalar_type & at(size_t row, size_t col) & noexcept
   {
     assert(row < mat_rows && col < mat_cols);
 
@@ -286,7 +286,7 @@ public:
   /// <returns>The scalar value at the provided row and column.</returns>
   constexpr scalar_type operator[](size_t row, size_t col) const noexcept
   {
-    return this->at(row, col);
+    return at(row, col);
   }
 
   /// <summary>
@@ -295,7 +295,7 @@ public:
   /// <param name="row">The row of the element.</param>
   /// <param name="col">The column of the element.</param>
   /// <returns>A reference of the scalar value at the provided row and column.</returns>
-  constexpr scalar_type & operator[](size_t row, size_t col) noexcept { return this->at(row, col); }
+  constexpr scalar_type & operator[](size_t row, size_t col) noexcept { return at(row, col); }
 #endif
 
   /// <summary>
@@ -303,9 +303,9 @@ public:
   /// </summary>
   /// <param name="position">The row and column position of the matrix element.</param>
   /// <returns>The scalar value at the provided position.</returns>
-  constexpr scalar_type operator[](std::pair<size_t, size_t> position) const noexcept
+  constexpr const scalar_type & operator[](std::pair<size_t, size_t> position) const & noexcept
   {
-    return this->at(position.first, position.second);
+    return at(position.first, position.second);
   }
 
   /// <summary>
@@ -313,9 +313,9 @@ public:
   /// </summary>
   /// <param name="position">The row and column position of the matrix element.</param>
   /// <returns>A reference of the scalar value at the provided position.</returns>
-  constexpr scalar_type & operator[](std::pair<size_t, size_t> position) noexcept
+  constexpr scalar_type & operator[](std::pair<size_t, size_t> position) & noexcept
   {
-    return this->at(position.first, position.second);
+    return at(position.first, position.second);
   }
 
 #ifdef __cpp_lib_mdspan
@@ -383,10 +383,10 @@ public:
 
     for (int r{0}; r < mat_rows; ++r)
     {
-      auto row = this->row(r);
+      auto && r = row(r);
 
       for (int c{0}; c < mat_cols; ++c)
-        data[c * mat_rows + r] = row[c];
+        data[c * mat_rows + r] = r[c];
     }
 
     return generic_mat_type<mat_cols, mat_rows>(std::move(data));
@@ -436,7 +436,7 @@ public:
 
     for (int c{0}; c < cols; ++c)
       for (int r{0}; r < rows; ++r)
-        data[c * mat_rows + r] = this->at(r, c);
+        data[c * mat_rows + r] = at(r, c);
 
     std::memcpy(&mat, data.data(), data.size() * sizeof(scalar_type));
     return mat;

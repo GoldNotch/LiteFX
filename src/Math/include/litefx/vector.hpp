@@ -169,7 +169,7 @@ public:
   /// </remarks>
   /// <param name="i">The index of the element to return.</param>
   /// <returns>The value of the element at the provided index.</returns>
-  constexpr T operator[](unsigned int i) const noexcept
+  constexpr const T & operator[](unsigned int i) const & noexcept
   {
     assert(i < DIM);
 
@@ -184,7 +184,7 @@ public:
   /// </remarks>
   /// <param name="i">The index of the element to return.</param>
   /// <returns>A reference to a value of the element at the provided index.</returns>
-  constexpr T & operator[](unsigned int i) noexcept
+  constexpr T & operator[](unsigned int i) & noexcept
   {
     assert(i < DIM);
 
@@ -245,7 +245,7 @@ public:
   /// Returns the value of the x component of the vector.
   /// </summary>
   /// <returns>The value of the x component of the vector.</returns>
-  constexpr scalar_type x() const noexcept
+  constexpr const scalar_type & x() const & noexcept
     requires(DIM > 0)
   {
     return m_elements[0];
@@ -255,7 +255,7 @@ public:
   /// Returns a reference of the value of the x component of the vector.
   /// </summary>
   /// <returns>The a reference of the value of the x component of the vector.</returns>
-  constexpr scalar_type & x() noexcept
+  constexpr scalar_type & x() & noexcept
     requires(DIM > 0)
   {
     return m_elements[0];
@@ -265,7 +265,7 @@ public:
   /// Returns the value of the y component of the vector.
   /// </summary>
   /// <returns>The value of the y component of the vector.</returns>
-  constexpr scalar_type y() const noexcept
+  constexpr const scalar_type & y() const & noexcept
     requires(DIM > 1)
   {
     return m_elements[1];
@@ -275,7 +275,7 @@ public:
   /// Returns a reference of the value of the y component of the vector.
   /// </summary>
   /// <returns>The a reference of the value of the y component of the vector.</returns>
-  constexpr scalar_type & y() noexcept
+  constexpr scalar_type & y() & noexcept
     requires(DIM > 1)
   {
     return m_elements[1];
@@ -285,7 +285,7 @@ public:
   /// Returns the value of the z component of the vector.
   /// </summary>
   /// <returns>The value of the z component of the vector.</returns>
-  constexpr scalar_type z() const noexcept
+  constexpr const scalar_type & z() const & noexcept
     requires(DIM > 2)
   {
     return m_elements[2];
@@ -295,7 +295,7 @@ public:
   /// Returns a reference of the value of the z component of the vector.
   /// </summary>
   /// <returns>The a reference of the value of the z component of the vector.</returns>
-  constexpr scalar_type & z() noexcept
+  constexpr scalar_type & z() & noexcept
     requires(DIM > 2)
   {
     return m_elements[2];
@@ -305,7 +305,7 @@ public:
   /// Returns the value of the w component of the vector.
   /// </summary>
   /// <returns>The value of the w component of the vector.</returns>
-  constexpr scalar_type w() const noexcept
+  constexpr const scalar_type & w() const & noexcept
     requires(DIM > 3)
   {
     return m_elements[3];
@@ -315,7 +315,7 @@ public:
   /// Returns a reference of the value of the w component of the vector.
   /// </summary>
   /// <returns>The a reference of the value of the w component of the vector.</returns>
-  constexpr scalar_type & w() noexcept
+  constexpr scalar_type & w() & noexcept
     requires(DIM > 3)
   {
     return m_elements[3];

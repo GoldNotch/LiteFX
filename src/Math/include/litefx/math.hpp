@@ -1,21 +1,6 @@
 #pragma once
 
 #include <litefx/core.h>
-
-#if !defined(LITEFX_MATH_API)
-#if defined(LiteFX_Math_EXPORTS) && (defined _WIN32 || defined WINCE)
-#define LITEFX_MATH_API __declspec(dllexport)
-#elif (defined(LiteFX_Math_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#define LITEFX_MATH_API __attribute__((visibility("default")))
-#elif !defined(LiteFX_Math_EXPORTS) && (defined _WIN32 || defined WINCE)
-#define LITEFX_MATH_API __declspec(dllimport)
-#endif
-#endif
-
-#ifndef LITEFX_MATH_API
-#define LITEFX_MATH_API
-#endif
-
 #include <litefx/matrix.hpp>
 #include <litefx/vector.hpp>
 
@@ -73,10 +58,7 @@ using Double = double_t;
 /// </summary>
 /// <param name="arg">The value that should be assigned to the byte.</param>
 /// <returns>The value as byte.</returns>
-constexpr Byte operator"" _b(unsigned long long int arg) noexcept
-{
-  return static_cast<Byte>(arg);
-}
+constexpr Byte operator"" _b(unsigned long long int arg) noexcept { return static_cast<Byte>(arg); }
 
 /// <summary>
 /// A literal to define a 16 bit integer.
@@ -143,20 +125,14 @@ constexpr UInt64 operator"" _ui64(unsigned long long int arg) noexcept
 /// </summary>
 /// <param name="arg">The value that should be assigned to the floating point number.</param>
 /// <returns>The value as floating point number.</returns>
-constexpr Float operator"" _f32(long double arg) noexcept
-{
-  return static_cast<Float>(arg);
-}
+constexpr Float operator"" _f32(long double arg) noexcept { return static_cast<Float>(arg); }
 
 /// <summary>
 /// A literal to define a floating point value with double precision.
 /// </summary>
 /// <param name="arg">The value that should be assigned to the floating point number.</param>
 /// <returns>The value as floating point number.</returns>
-constexpr Double operator"" _f64(long double arg) noexcept
-{
-  return static_cast<Double>(arg);
-}
+constexpr Double operator"" _f64(long double arg) noexcept { return static_cast<Double>(arg); }
 
 /// <summary>
 /// Aligns a value <paramref name="size" /> to an alignment <paramref name="alignment" />.
@@ -373,7 +349,7 @@ using DoubleVector4 = TVector4<Double>;
 #pragma endregion
 
 #pragma region Size
-class LITEFX_MATH_API Size4d : public Vector<size_t, 4>
+class Size4d : public Vector<size_t, 4>
 {
 public:
   Size4d() noexcept;
@@ -396,17 +372,17 @@ public:
   Size4d & operator-=(const Size4d & s) noexcept;
 
 public:
-  size_t width() const noexcept;
-  size_t & width() noexcept;
-  size_t height() const noexcept;
-  size_t & height() noexcept;
-  size_t depth() const noexcept;
-  size_t & depth() noexcept;
-  size_t alpha() const noexcept;
-  size_t & alpha() noexcept;
+  const size_t & width() const & noexcept;
+  size_t & width() & noexcept;
+  const size_t & height() const & noexcept;
+  size_t & height() & noexcept;
+  const size_t & depth() const & noexcept;
+  size_t & depth() & noexcept;
+  const size_t & alpha() const & noexcept;
+  size_t & alpha() & noexcept;
 };
 
-class LITEFX_MATH_API Size3d : public Vector<size_t, 3>
+class Size3d : public Vector<size_t, 3>
 {
 public:
   Size3d() noexcept;
@@ -430,15 +406,15 @@ public:
   Size3d & operator-=(const Size3d & s) noexcept;
 
 public:
-  size_t width() const noexcept;
-  size_t & width() noexcept;
-  size_t height() const noexcept;
-  size_t & height() noexcept;
-  size_t depth() const noexcept;
-  size_t & depth() noexcept;
+  const size_t & width() const & noexcept;
+  size_t & width() & noexcept;
+  const size_t & height() const & noexcept;
+  size_t & height() & noexcept;
+  const size_t & depth() const & noexcept;
+  size_t & depth() & noexcept;
 };
 
-class LITEFX_MATH_API Size2d : public Vector<size_t, 2>
+class Size2d : public Vector<size_t, 2>
 {
 public:
   Size2d() noexcept;
@@ -463,15 +439,15 @@ public:
   Size2d & operator-=(const Size2d & s) noexcept;
 
 public:
-  size_t width() const noexcept;
-  size_t & width() noexcept;
-  size_t height() const noexcept;
-  size_t & height() noexcept;
+  const size_t & width() const & noexcept;
+  size_t & width() & noexcept;
+  const size_t & height() const & noexcept;
+  size_t & height() & noexcept;
 };
 #pragma endregion
 
 #pragma region Rectangle
-class LITEFX_MATH_API Rect : public Vector<size_t, 4>
+class Rect : public Vector<size_t, 4>
 {
 public:
   Rect() noexcept;
@@ -488,13 +464,13 @@ public:
 public:
   Vector<size_t, 2> position() const noexcept;
   Size2d extent() const noexcept;
-  size_t width() const noexcept;
-  size_t & width() noexcept;
-  size_t height() const noexcept;
-  size_t & height() noexcept;
+  const size_t & width() const & noexcept;
+  size_t & width() & noexcept;
+  const size_t & height() const & noexcept;
+  size_t & height() & noexcept;
 };
 
-class LITEFX_MATH_API RectI : public Vector<Int32, 4>
+class RectI : public Vector<Int32, 4>
 {
 public:
   RectI() noexcept;
@@ -511,13 +487,13 @@ public:
 public:
   Vector<Int32, 2> position() const noexcept;
   Size2d extent() const noexcept;
-  Int32 width() const noexcept;
-  Int32 & width() noexcept;
-  Int32 height() const noexcept;
-  Int32 & height() noexcept;
+  const Int32 & width() const & noexcept;
+  Int32 & width() & noexcept;
+  const Int32 & height() const & noexcept;
+  Int32 & height() & noexcept;
 };
 
-class LITEFX_MATH_API RectF : public Vector<Float, 4>
+class RectF : public Vector<Float, 4>
 {
 public:
   RectF() noexcept;
@@ -534,10 +510,10 @@ public:
 public:
   Vector<Float, 2> position() const noexcept;
   Size2d extent() const noexcept;
-  Float width() const noexcept;
-  Float & width() noexcept;
-  Float height() const noexcept;
-  Float & height() noexcept;
+  const Float & width() const & noexcept;
+  Float & width() & noexcept;
+  const Float & height() const & noexcept;
+  Float & height() & noexcept;
 };
 #pragma endregion
 } // namespace LiteFX::Math
