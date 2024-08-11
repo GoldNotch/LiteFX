@@ -1,4 +1,5 @@
 #include <litefx/logging.hpp>
+
 #include <spdlog/sinks/ansicolor_sink-inl.h>
 
 using namespace LiteFX::Logging;
@@ -7,51 +8,43 @@ using namespace LiteFX::Logging;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class ConsoleSink::ConsoleSinkImpl : public Implement<ConsoleSink> {
+class ConsoleSink::ConsoleSinkImpl : public Implement<ConsoleSink>
+{
 public:
-    friend class ConsoleSink;
+  friend class ConsoleSink;
 
 private:
-    String m_pattern;
-    LogLevel m_level;
-    SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink;
+  String m_pattern;
+  LogLevel m_level;
+  SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink;
 
 public:
-    ConsoleSinkImpl(ConsoleSink* parent, LogLevel level, const String& pattern) : 
-        base(parent), m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) 
-    { 
-        m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
-        m_sink->set_pattern(pattern);
-    }
+  ConsoleSinkImpl(ConsoleSink * parent, LogLevel level, const String & pattern)
+    : base(parent)
+    , m_pattern(pattern)
+    , m_level(level)
+    , m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>())
+  {
+    m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
+    m_sink->set_pattern(pattern);
+  }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-ConsoleSink::ConsoleSink(LogLevel level, const String& pattern) :
-    m_impl(makePimpl<ConsoleSinkImpl>(this, level, pattern))
+ConsoleSink::ConsoleSink(LogLevel level, const String & pattern)
+  : m_impl(makePimpl<ConsoleSinkImpl>(this, level, pattern))
 {
 }
 
 ConsoleSink::~ConsoleSink() noexcept = default;
 
-String ConsoleSink::getName() const
-{
-    return "spdlog::sinks::ansicolor_stdout_sink_mt";
-}
+String ConsoleSink::getName() const { return "spdlog::sinks::ansicolor_stdout_sink_mt"; }
 
-LogLevel ConsoleSink::getLevel() const
-{
-    return m_impl->m_level;
-}
+LogLevel ConsoleSink::getLevel() const { return m_impl->m_level; }
 
-String ConsoleSink::getPattern() const
-{
-    return m_impl->m_pattern;
-}
+String ConsoleSink::getPattern() const { return m_impl->m_pattern; }
 
-spdlog::sink_ptr ConsoleSink::get() const
-{
-    return m_impl->m_sink;
-}
+spdlog::sink_ptr ConsoleSink::get() const { return m_impl->m_sink; }

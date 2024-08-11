@@ -5,328 +5,372 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
-class VulkanDescriptorSet::VulkanDescriptorSetImpl : public Implement<VulkanDescriptorSet> {
+class VulkanDescriptorSet::VulkanDescriptorSetImpl : public Implement<VulkanDescriptorSet>
+{
 public:
-    friend class VulkanDescriptorSet;
+  friend class VulkanDescriptorSet;
 
 private:
-    Dictionary<UInt32, VkBufferView> m_bufferViews;
-    Dictionary<UInt32, VkImageView> m_imageViews;
-    const VulkanDescriptorSetLayout& m_layout;
+  Dictionary<UInt32, VkBufferView> m_bufferViews;
+  Dictionary<UInt32, VkImageView> m_imageViews;
+  const VulkanDescriptorSetLayout & m_layout;
 
 public:
-    VulkanDescriptorSetImpl(VulkanDescriptorSet* parent, const VulkanDescriptorSetLayout& layout) :
-        base(parent), m_layout(layout)
-    {
-    }
+  VulkanDescriptorSetImpl(VulkanDescriptorSet * parent, const VulkanDescriptorSetLayout & layout)
+    : base(parent)
+    , m_layout(layout)
+  {
+  }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet) :
-    m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout)), Resource<VkDescriptorSet>(descriptorSet)
+VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout & layout,
+                                         VkDescriptorSet descriptorSet)
+  : m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout))
+  , Resource<VkDescriptorSet>(descriptorSet)
 {
-    if (descriptorSet == VK_NULL_HANDLE)
-        throw ArgumentNotInitializedException("descriptorSet", "The descriptor set handle must be initialized.");
+  if (descriptorSet == VK_NULL_HANDLE)
+    throw ArgumentNotInitializedException("descriptorSet",
+                                          "The descriptor set handle must be initialized.");
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {
-    for (auto& bufferView : m_impl->m_bufferViews)
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), bufferView.second, nullptr);
+  for (auto & bufferView : m_impl->m_bufferViews)
+    ::vkDestroyBufferView(m_impl->m_layout.device().handle(), bufferView.second, nullptr);
 
-    for (auto& imageView : m_impl->m_imageViews)
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), imageView.second, nullptr);
+  for (auto & imageView : m_impl->m_imageViews)
+    ::vkDestroyImageView(m_impl->m_layout.device().handle(), imageView.second, nullptr);
 
-    m_impl->m_layout.free(*this);
+  m_impl->m_layout.free(*this);
 }
 
-const VulkanDescriptorSetLayout& VulkanDescriptorSet::layout() const noexcept
+const VulkanDescriptorSetLayout & VulkanDescriptorSet::layout() const noexcept
 {
-    return m_impl->m_layout;
+  return m_impl->m_layout;
 }
 
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer & buffer, UInt32 bufferElement,
+                                 UInt32 elements, UInt32 firstDescriptor) const
 {
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+  // Find the descriptor.
+  auto descriptors = m_impl->m_layout.descriptors();
+  auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout * layout)
+                                    { return layout->binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
-        return;
-    }
-    
-    const auto& descriptorLayout = *(*match);
+  if (match == descriptors.end()) [[unlikely]]
+  {
+    LITEFX_WARNING(VULKAN_LOG,
+                   "The descriptor set {0} does not contain a descriptor at binding {1}.",
+                   m_impl->m_layout.space(), binding);
+    return;
+  }
 
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = firstDescriptor;
-    descriptorWrite.descriptorCount = 1;
+  const auto & descriptorLayout = *(*match);
 
-    Array<VkDescriptorBufferInfo> bufferInfos;
-    UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.dstSet = this->handle();
+  descriptorWrite.dstBinding = binding;
+  descriptorWrite.dstArrayElement = firstDescriptor;
+  descriptorWrite.descriptorCount = 1;
 
-    switch (descriptorLayout.descriptorType())
-    {
+  Array<VkDescriptorBufferInfo> bufferInfos;
+  UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
+
+  switch (descriptorLayout.descriptorType())
+  {
     case DescriptorType::ConstantBuffer:
     {
-        descriptorWrite.descriptorCount = elementCount;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      descriptorWrite.descriptorCount = elementCount;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-        bufferInfos.resize(elementCount);
-        std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
-            return VkDescriptorBufferInfo {
-                .buffer = buffer.handle(),
-                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
-                .range = buffer.elementSize()
-            };
-        });
+      bufferInfos.resize(elementCount);
+      std::ranges::generate(bufferInfos,
+                            [&buffer, &bufferElement, i = 0]() mutable
+                            {
+                              return VkDescriptorBufferInfo{.buffer = buffer.handle(),
+                                                            .offset = buffer.alignedElementSize() *
+                                                                      static_cast<size_t>(
+                                                                        bufferElement + i++),
+                                                            .range = buffer.elementSize()};
+                            });
 
-        descriptorWrite.pBufferInfo = bufferInfos.data();
-        break;
+      descriptorWrite.pBufferInfo = bufferInfos.data();
+      break;
     }
     case DescriptorType::StructuredBuffer:
     case DescriptorType::RWStructuredBuffer:
     case DescriptorType::ByteAddressBuffer:
     case DescriptorType::RWByteAddressBuffer:
     {
-        descriptorWrite.descriptorCount = elementCount;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      descriptorWrite.descriptorCount = elementCount;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-        bufferInfos.resize(elementCount);
-        std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
-            return VkDescriptorBufferInfo {
-                .buffer = buffer.handle(),
-                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
-                .range = buffer.elementSize()
-            };
-        });
+      bufferInfos.resize(elementCount);
+      std::ranges::generate(bufferInfos,
+                            [&buffer, &bufferElement, i = 0]() mutable
+                            {
+                              return VkDescriptorBufferInfo{.buffer = buffer.handle(),
+                                                            .offset = buffer.alignedElementSize() *
+                                                                      static_cast<size_t>(
+                                                                        bufferElement + i++),
+                                                            .range = buffer.elementSize()};
+                            });
 
-        descriptorWrite.pBufferInfo = bufferInfos.data();
-        break;
+      descriptorWrite.pBufferInfo = bufferInfos.data();
+      break;
     }
     case DescriptorType::Buffer:
     {
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
 
-        VkBufferViewCreateInfo bufferViewDesc {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .buffer = buffer.handle(),
-            .format = VK_FORMAT_UNDEFINED,
-            .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
-            .range = buffer.alignedElementSize() * elementCount
-        };
+      VkBufferViewCreateInfo bufferViewDesc{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .buffer = buffer.handle(),
+        .format = VK_FORMAT_UNDEFINED,
+        .offset =
+          buffer.alignedElementSize() *
+          bufferElement, // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
+        .range = buffer.alignedElementSize() * elementCount};
 
-        VkBufferView bufferView;
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
-        m_impl->m_bufferViews[binding] = bufferView;
+      VkBufferView bufferView;
+      raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc,
+                                         nullptr, &bufferView),
+                    "Unable to create buffer view.");
+      m_impl->m_bufferViews[binding] = bufferView;
 
-        descriptorWrite.pTexelBufferView = &bufferView;
-        break;
+      descriptorWrite.pTexelBufferView = &bufferView;
+      break;
     }
     case DescriptorType::RWBuffer:
     {
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 
-        VkBufferViewCreateInfo bufferViewDesc {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .buffer = buffer.handle(),
-            .format = VK_FORMAT_UNDEFINED,
-            .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
-            .range = buffer.alignedElementSize() * elementCount
-        };
-
-        VkBufferView bufferView;
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
-        m_impl->m_bufferViews[binding] = bufferView;
-
-        descriptorWrite.pTexelBufferView = &bufferView;
-        break;
-    }
-    default: [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
-    }
-
-    // Remove the buffer view, if there is one bound to the current descriptor.
-    if (m_impl->m_bufferViews.contains(binding))
-    {
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), m_impl->m_bufferViews[binding], nullptr);
-        m_impl->m_bufferViews.erase(binding);
-    }
-
-    // Update the descriptor set.
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
-}
-
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
-{
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
-
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
-        return;
-    }
-    
-    const auto& layout = *(*match);
-
-    VkDescriptorImageInfo imageInfo{ };
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = descriptor;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
-
-    switch (layout.descriptorType())
-    {
-    case DescriptorType::Texture:
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        break;
-    case DescriptorType::RWTexture:
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        break;
-    case DescriptorType::InputAttachment:
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-        break;
-    default: [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a texture descriptor.", binding);
-    }
-
-    // Remove the image view, if there is one bound to the current descriptor.
-    if (m_impl->m_imageViews.contains(binding))
-    {
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), m_impl->m_imageViews[binding], nullptr);
-        m_impl->m_imageViews.erase(binding);
-    }
-    
-    // Create a new image view.
-    const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
-    const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
-
-    VkImageViewCreateInfo imageViewDesc = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      VkBufferViewCreateInfo bufferViewDesc{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
         .pNext = nullptr,
-        .image = texture.handle(),
-        .viewType = Vk::getImageViewType(texture.dimensions(), numLayers), // TODO: What if we want to bind an array with one layer only, though?!... `DescriptorLayout` should get an "isArray" property.
-        .format = Vk::getFormat(texture.format()),
-        .components = VkComponentMapping {
-            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .a = VK_COMPONENT_SWIZZLE_IDENTITY
-        },
-        .subresourceRange = VkImageSubresourceRange {
-            .baseMipLevel = firstLevel,
-            .levelCount = numLevels,
-            .baseArrayLayer = firstLayer,
-            .layerCount = numLayers
-        }
-    };
+        .flags = 0,
+        .buffer = buffer.handle(),
+        .format = VK_FORMAT_UNDEFINED,
+        .offset =
+          buffer.alignedElementSize() *
+          bufferElement, // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
+        .range = buffer.alignedElementSize() * elementCount};
 
-    if (!::hasDepth(texture.format()) && !::hasStencil(texture.format()))
-        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    else
-    {
-        // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
-        if (::hasDepth(texture.format()))
-            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+      VkBufferView bufferView;
+      raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc,
+                                         nullptr, &bufferView),
+                    "Unable to create buffer view.");
+      m_impl->m_bufferViews[binding] = bufferView;
 
-        if (::hasStencil(texture.format()))
-            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+      descriptorWrite.pTexelBufferView = &bufferView;
+      break;
     }
+    default:
+      [[unlikely]] throw InvalidArgumentException(
+        "binding",
+        "Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
+  }
 
-    VkImageView imageView;
-    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
-    m_impl->m_imageViews[binding] = imageView;
-    imageInfo.imageView = imageView;
+  // Remove the buffer view, if there is one bound to the current descriptor.
+  if (m_impl->m_bufferViews.contains(binding))
+  {
+    ::vkDestroyBufferView(m_impl->m_layout.device().handle(), m_impl->m_bufferViews[binding],
+                          nullptr);
+    m_impl->m_bufferViews.erase(binding);
+  }
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+  // Update the descriptor set.
+  ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage & texture, UInt32 descriptor,
+                                 UInt32 firstLevel, UInt32 levels, UInt32 firstLayer,
+                                 UInt32 layers) const
 {
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+  // Find the descriptor.
+  auto descriptors = m_impl->m_layout.descriptors();
+  auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout * layout)
+                                    { return layout->binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
-        return;
-    }
-    
-    const auto& layout = *(*match);
+  if (match == descriptors.end()) [[unlikely]]
+  {
+    LITEFX_WARNING(VULKAN_LOG,
+                   "The descriptor set {0} does not contain a descriptor at binding {1}.",
+                   m_impl->m_layout.space(), binding);
+    return;
+  }
 
-    if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
+  const auto & layout = *(*match);
 
-    VkDescriptorImageInfo imageInfo{ };
-    imageInfo.sampler = sampler.handle();
+  VkDescriptorImageInfo imageInfo{};
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.dstSet = this->handle();
+  descriptorWrite.dstBinding = binding;
+  descriptorWrite.dstArrayElement = descriptor;
+  descriptorWrite.descriptorCount = 1;
+  descriptorWrite.pImageInfo = &imageInfo;
 
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = descriptor;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
+  switch (layout.descriptorType())
+  {
+    case DescriptorType::Texture:
+      imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+      break;
+    case DescriptorType::RWTexture:
+      imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      break;
+    case DescriptorType::InputAttachment:
+      imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+      break;
+    default:
+      [[unlikely]] throw InvalidArgumentException(
+        "binding",
+        "Invalid descriptor type. The binding {0} does not point to a texture descriptor.",
+        binding);
+  }
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+  // Remove the image view, if there is one bound to the current descriptor.
+  if (m_impl->m_imageViews.contains(binding))
+  {
+    ::vkDestroyImageView(m_impl->m_layout.device().handle(), m_impl->m_imageViews[binding],
+                         nullptr);
+    m_impl->m_imageViews.erase(binding);
+  }
+
+  // Create a new image view.
+  const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
+  const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
+
+  VkImageViewCreateInfo imageViewDesc = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    .pNext = nullptr,
+    .image = texture.handle(),
+    .viewType = Vk::getImageViewType(
+      texture.dimensions(),
+      numLayers), // TODO: What if we want to bind an array with one layer only, though?!... `DescriptorLayout` should get an "isArray" property.
+    .format = Vk::getFormat(texture.format()),
+    .components = VkComponentMapping{.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                     .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                     .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                     .a = VK_COMPONENT_SWIZZLE_IDENTITY},
+    .subresourceRange = VkImageSubresourceRange{.baseMipLevel = firstLevel,
+                                                .levelCount = numLevels,
+                                                .baseArrayLayer = firstLayer,
+                                                .layerCount = numLayers}};
+
+  if (!::hasDepth(texture.format()) && !::hasStencil(texture.format()))
+    imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  else
+  {
+    // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
+    if (::hasDepth(texture.format()))
+      imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+    if (::hasStencil(texture.format()))
+      imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+  }
+
+  VkImageView imageView;
+  raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr,
+                                    &imageView),
+                "Unable to create image view.");
+  m_impl->m_imageViews[binding] = imageView;
+  imageInfo.imageView = imageView;
+
+  ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler & sampler,
+                                 UInt32 descriptor) const
 {
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+  // Find the descriptor.
+  auto descriptors = m_impl->m_layout.descriptors();
+  auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout * layout)
+                                    { return layout->binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
-        return;
-    }
-    
-    const auto& layout = *(*match);
+  if (match == descriptors.end()) [[unlikely]]
+  {
+    LITEFX_WARNING(VULKAN_LOG,
+                   "The descriptor set {0} does not contain a descriptor at binding {1}.",
+                   m_impl->m_layout.space(), binding);
+    return;
+  }
 
-    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
+  const auto & layout = *(*match);
 
-    if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
-        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+  if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
+    throw InvalidArgumentException(
+      "binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.",
+      binding);
 
-    VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo = {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
-        .accelerationStructureCount = 1,
-        .pAccelerationStructures = &accelerationStructure.handle()
-    };
-    
-    VkWriteDescriptorSet descriptorWrite = { 
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = &accelerationStructureInfo,
-        .dstSet = this->handle(),
-        .dstBinding = binding,
-        .dstArrayElement = descriptor,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
-    };
+  VkDescriptorImageInfo imageInfo{};
+  imageInfo.sampler = sampler.handle();
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+  descriptorWrite.dstSet = this->handle();
+  descriptorWrite.dstBinding = binding;
+  descriptorWrite.dstArrayElement = descriptor;
+  descriptorWrite.descriptorCount = 1;
+  descriptorWrite.pImageInfo = &imageInfo;
+
+  ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+}
+
+void VulkanDescriptorSet::update(UInt32 binding,
+                                 const IVulkanAccelerationStructure & accelerationStructure,
+                                 UInt32 descriptor) const
+{
+  // Find the descriptor.
+  auto descriptors = m_impl->m_layout.descriptors();
+  auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout * layout)
+                                    { return layout->binding() == binding; });
+
+  if (match == descriptors.end()) [[unlikely]]
+  {
+    LITEFX_WARNING(VULKAN_LOG,
+                   "The descriptor set {0} does not contain a descriptor at binding {1}.",
+                   m_impl->m_layout.space(), binding);
+    return;
+  }
+
+  const auto & layout = *(*match);
+
+  if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+    throw InvalidArgumentException(
+      "binding",
+      "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.",
+      binding);
+
+  if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE)
+    [[unlikely]]
+    throw InvalidArgumentException("accelerationStructure",
+                                   "The acceleration structure buffer has not yet been allocated.");
+
+  VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo =
+    {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+     .accelerationStructureCount = 1,
+     .pAccelerationStructures = &accelerationStructure.handle()};
+
+  VkWriteDescriptorSet descriptorWrite = {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                          .pNext = &accelerationStructureInfo,
+                                          .dstSet = this->handle(),
+                                          .dstBinding = binding,
+                                          .dstArrayElement = descriptor,
+                                          .descriptorCount = 1,
+                                          .descriptorType =
+                                            VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR};
+
+  ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }

@@ -4,40 +4,46 @@
 
 using namespace LiteFX;
 
-class Base {
+class Base
+{
 public:
-    virtual ~Base() noexcept = default;
+  virtual ~Base() noexcept = default;
 
-    virtual int index() const noexcept = 0;
+  virtual int index() const noexcept = 0;
 };
 
-class Foo : public Base {
+class Foo : public Base
+{
 private:
-    int _i;
+  int _i;
 
 public:
-    Foo(int i) : _i(i) { }
-    virtual ~Foo() noexcept = default;
+  Foo(int i)
+    : _i(i)
+  {
+  }
+  virtual ~Foo() noexcept = default;
 
-    int index() const noexcept override {
-        return _i;
-    }
+  int index() const noexcept override { return _i; }
 };
 
-class Bar : public Base {
+class Bar : public Base
+{
 private:
-    int _i;
+  int _i;
 
 public:
-    Bar(int i) : _i(i) { }
-    virtual ~Bar() noexcept = default;
+  Bar(int i)
+    : _i(i)
+  {
+  }
+  virtual ~Bar() noexcept = default;
 
-    int index() const noexcept override {
-        return _i;
-    }
+  int index() const noexcept override { return _i; }
 };
 
-struct Test {
-    int index;
-    String name;
+struct Test
+{
+  int index;
+  String name;
 };

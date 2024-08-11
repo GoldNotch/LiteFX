@@ -6,11 +6,9 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Surface::DirectX12Surface(const HWND& handle) noexcept :
-	Resource<HWND>(handle)
+DirectX12Surface::DirectX12Surface(const HWND & handle) noexcept
+  : Resource<HWND>(handle)
 {
 }
 
-DirectX12Surface::~DirectX12Surface() noexcept
-{
-}
+DirectX12Surface::~DirectX12Surface() noexcept {}

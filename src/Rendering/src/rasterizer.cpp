@@ -6,93 +6,78 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class Rasterizer::RasterizerImpl : public Implement<Rasterizer> {
+class Rasterizer::RasterizerImpl : public Implement<Rasterizer>
+{
 public:
-    friend class Rasterizer;
+  friend class Rasterizer;
 
 private:
-    PolygonMode m_polygonMode = PolygonMode::Solid;
-    CullMode m_cullMode = CullMode::BackFaces;
-    CullOrder m_cullOrder = CullOrder::CounterClockWise;
-    Float m_lineWidth = 1.f;
-    DepthStencilState m_depthStencilState;
+  PolygonMode m_polygonMode = PolygonMode::Solid;
+  CullMode m_cullMode = CullMode::BackFaces;
+  CullOrder m_cullOrder = CullOrder::CounterClockWise;
+  Float m_lineWidth = 1.f;
+  DepthStencilState m_depthStencilState;
 
 public:
-    RasterizerImpl(Rasterizer* parent, PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) :
-        base(parent), m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(depthStencilState)
-    {
-    }
+  RasterizerImpl(Rasterizer * parent, PolygonMode polygonMode, CullMode cullMode,
+                 CullOrder cullOrder, Float lineWidth, const DepthStencilState & depthStencilState)
+    : base(parent)
+    , m_polygonMode(polygonMode)
+    , m_cullMode(cullMode)
+    , m_cullOrder(cullOrder)
+    , m_lineWidth(lineWidth)
+    , m_depthStencilState(depthStencilState)
+  {
+  }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) noexcept :
-    m_impl(makePimpl<RasterizerImpl>(this, polygonMode, cullMode, cullOrder, lineWidth, depthStencilState))
+Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder,
+                       Float lineWidth, const DepthStencilState & depthStencilState) noexcept
+  : m_impl(makePimpl<RasterizerImpl>(this, polygonMode, cullMode, cullOrder, lineWidth,
+                                     depthStencilState))
 {
 }
 
-Rasterizer::Rasterizer(const Rasterizer& _other) noexcept :
-    m_impl(makePimpl<RasterizerImpl>(this, _other.polygonMode(), _other.cullMode(), _other.cullOrder(), _other.lineWidth(), _other.depthStencilState()))
+Rasterizer::Rasterizer(const Rasterizer & _other) noexcept
+  : m_impl(makePimpl<RasterizerImpl>(this, _other.polygonMode(), _other.cullMode(),
+                                     _other.cullOrder(), _other.lineWidth(),
+                                     _other.depthStencilState()))
 {
-
 }
 
-Rasterizer::Rasterizer(Rasterizer&& _other) noexcept :
-    m_impl(makePimpl<RasterizerImpl>(this, _other.polygonMode(), _other.cullMode(), _other.cullOrder(), _other.lineWidth(), _other.depthStencilState()))
+Rasterizer::Rasterizer(Rasterizer && _other) noexcept
+  : m_impl(makePimpl<RasterizerImpl>(this, _other.polygonMode(), _other.cullMode(),
+                                     _other.cullOrder(), _other.lineWidth(),
+                                     _other.depthStencilState()))
 {
-    // TODO: We could move out the properties of `_other`, but I guess moving around rasterizer states really should not be the bottleneck in most applications.
+  // TODO: We could move out the properties of `_other`, but I guess moving around rasterizer states really should not be the bottleneck in most applications.
 }
 
 Rasterizer::~Rasterizer() noexcept = default;
 
-PolygonMode Rasterizer::polygonMode() const noexcept
+PolygonMode Rasterizer::polygonMode() const noexcept { return m_impl->m_polygonMode; }
+
+CullMode Rasterizer::cullMode() const noexcept { return m_impl->m_cullMode; }
+
+CullOrder Rasterizer::cullOrder() const noexcept { return m_impl->m_cullOrder; }
+
+Float Rasterizer::lineWidth() const noexcept { return m_impl->m_lineWidth; }
+
+const DepthStencilState & Rasterizer::depthStencilState() const noexcept
 {
-    return m_impl->m_polygonMode;
+  return m_impl->m_depthStencilState;
 }
 
-CullMode Rasterizer::cullMode() const noexcept
-{
-    return m_impl->m_cullMode;
-}
+PolygonMode & Rasterizer::polygonMode() noexcept { return m_impl->m_polygonMode; }
 
-CullOrder Rasterizer::cullOrder() const noexcept
-{
-    return m_impl->m_cullOrder;
-}
+CullMode & Rasterizer::cullMode() noexcept { return m_impl->m_cullMode; }
 
-Float Rasterizer::lineWidth() const noexcept
-{
-    return m_impl->m_lineWidth;
-}
+CullOrder & Rasterizer::cullOrder() noexcept { return m_impl->m_cullOrder; }
 
-const DepthStencilState& Rasterizer::depthStencilState() const noexcept
-{
-    return m_impl->m_depthStencilState;
-}
+Float & Rasterizer::lineWidth() noexcept { return m_impl->m_lineWidth; }
 
-PolygonMode& Rasterizer::polygonMode() noexcept
-{
-    return m_impl->m_polygonMode;
-}
-
-CullMode& Rasterizer::cullMode() noexcept
-{
-    return m_impl->m_cullMode;
-}
-
-CullOrder& Rasterizer::cullOrder() noexcept
-{
-    return m_impl->m_cullOrder;
-}
-
-Float& Rasterizer::lineWidth() noexcept
-{
-    return m_impl->m_lineWidth;
-}
-
-DepthStencilState& Rasterizer::depthStencilState() noexcept
-{
-    return m_impl->m_depthStencilState;
-}
+DepthStencilState & Rasterizer::depthStencilState() noexcept { return m_impl->m_depthStencilState; }

@@ -6,42 +6,38 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class StateResource::StateResourceImpl : public Implement<StateResource> {
+class StateResource::StateResourceImpl : public Implement<StateResource>
+{
 public:
-    friend class StateResource;
+  friend class StateResource;
 
 private:
-    String m_name;
+  String m_name;
 
 public:
-    StateResourceImpl(StateResource* parent, StringView name) :
-        base(parent), m_name(name)
-    {
-    }
+  StateResourceImpl(StateResource * parent, StringView name)
+    : base(parent)
+    , m_name(name)
+  {
+  }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-StateResource::StateResource() noexcept :
-    StateResource(std::format("{0}", reinterpret_cast<void*>(this)))
+StateResource::StateResource() noexcept
+  : StateResource(std::format("{0}", reinterpret_cast<void *>(this)))
 {
 }
 
-StateResource::StateResource(StringView name) :
-    m_impl(makePimpl<StateResourceImpl>(this, name))
+StateResource::StateResource(StringView name)
+  : m_impl(makePimpl<StateResourceImpl>(this, name))
 {
 }
 
 StateResource::~StateResource() noexcept = default;
 
-String& StateResource::name() noexcept
-{
-    return m_impl->m_name;
-}
+String & StateResource::name() noexcept { return m_impl->m_name; }
 
-const String& StateResource::name() const noexcept
-{
-    return m_impl->m_name;
-}
+const String & StateResource::name() const noexcept { return m_impl->m_name; }
