@@ -50,7 +50,10 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-    PUBLIC LiteFX.Core LiteFX.Logging LiteFX.Math
+PUBLIC 
+    LiteFX.Core
+    LiteFX.Logging
+    LiteFX.Math
 )
 
 # Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
