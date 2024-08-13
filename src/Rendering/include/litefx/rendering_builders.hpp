@@ -56,8 +56,8 @@ public:
     /// <returns>The instance of the parent builder.</returns>
     constexpr auto toContinueWith(PipelineStage stage) -> TParent
     {
-      this->m_parent.stagesCallback(this->m_from, stage);
-      return std::move(this->m_parent);
+      m_parent.stagesCallback(m_from, stage);
+      return std::move(m_parent);
     }
   };
 
@@ -93,8 +93,8 @@ public:
     /// <param name="access">The resource accesses that are waited for until the barrier can be executed.</param>
     constexpr auto untilFinishedWith(ResourceAccess access) -> TParent
     {
-      this->m_parent.globalBarrierCallback(access, m_access);
-      return std::move(this->m_parent);
+      m_parent.globalBarrierCallback(access, m_access);
+      return std::move(m_parent);
     }
   };
 
@@ -134,8 +134,8 @@ public:
     /// <param name="access">The resource accesses that are waited for in a buffer before the barrier can be executed.</param>
     constexpr auto untilFinishedWith(ResourceAccess access) -> TParent
     {
-      this->m_parent.bufferBarrierCallback(m_buffer, access, m_access);
-      return std::move(this->m_parent);
+      m_parent.bufferBarrierCallback(m_buffer, access, m_access);
+      return std::move(m_parent);
     }
   };
 
@@ -191,9 +191,9 @@ public:
     /// <param name="access">The resource accesses that are waited for on the image sub-resources before the barrier can be executed.</param>
     constexpr auto whenFinishedWith(ResourceAccess access) -> TParent
     {
-      this->m_parent.imageBarrierCallback(m_image, access, m_access, m_layout, m_level, m_levels,
+      m_parent.imageBarrierCallback(m_image, access, m_access, m_layout, m_level, m_levels,
                                           m_layer, m_layers, m_plane);
-      return std::move(this->m_parent);
+      return std::move(m_parent);
     }
   };
 
@@ -278,7 +278,7 @@ private:
   /// <param name="continueWith">The pipeline stage to allow continuation with the current barrier.</param>
   constexpr void stagesCallback(PipelineStage waitFor, PipelineStage continueWith)
   {
-    this->setupStages(waitFor, continueWith);
+    setupStages(waitFor, continueWith);
   }
 
   /// <summary>
@@ -288,7 +288,7 @@ private:
   /// <param name="after">The resource access state of all resources to continue with after this barrier.</param>
   constexpr void globalBarrierCallback(ResourceAccess before, ResourceAccess after)
   {
-    this->setupGlobalBarrier(before, after);
+    setupGlobalBarrier(before, after);
   }
 
   /// <summary>
@@ -300,7 +300,7 @@ private:
   constexpr void bufferBarrierCallback(IBuffer & buffer, ResourceAccess before,
                                        ResourceAccess after)
   {
-    this->setupBufferBarrier(buffer, before, after);
+    setupBufferBarrier(buffer, before, after);
   }
 
   /// <summary>
@@ -319,7 +319,7 @@ private:
                                       ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer,
                                       UInt32 layers, UInt32 plane)
   {
-    this->setupImageBarrier(image, before, after, layout, level, levels, layer, layers, plane);
+    setupImageBarrier(image, before, after, layout, level, levels, layer, layers, plane);
   }
 
 protected:

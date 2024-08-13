@@ -3775,7 +3775,7 @@ public:
   /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
   inline bool writable() const noexcept
   {
-    return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
+    return LITEFX_FLAG_IS_SET(usage(), ResourceUsage::AllowWrite);
   }
 
   /// <summary>
@@ -3895,7 +3895,7 @@ public:
   /// <seealso cref="resolveSubresource" />
   virtual inline UInt32 subresourceId(UInt32 level, UInt32 layer, UInt32 plane) const noexcept
   {
-    return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
+    return level + (layer * levels()) + (plane * levels() * layers());
   }
 
   /// <summary>
@@ -3909,11 +3909,11 @@ public:
   virtual inline void resolveSubresource(UInt32 subresource, UInt32 & plane, UInt32 & layer,
                                          UInt32 & level) const noexcept
   {
-    const auto levels = this->levels();
-    const UInt32 resourcesPerPlane = levels * this->layers();
+    const auto levels_ = levels();
+    const UInt32 resourcesPerPlane = levels_ * layers();
     plane = subresource / resourcesPerPlane;
-    layer = (subresource % resourcesPerPlane) / levels;
-    level = subresource % levels;
+    layer = (subresource % resourcesPerPlane) / levels_;
+    level = subresource % levels_;
   }
 };
 
@@ -4071,7 +4071,7 @@ public:
                     SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0,
                     UInt64 maxSize = 0)
   {
-    this->doBuild(commandBuffer, scratchBuffer, buffer, offset, maxSize);
+    doBuild(commandBuffer, scratchBuffer, buffer, offset, maxSize);
   }
 
   /// <summary>
@@ -4111,7 +4111,7 @@ public:
                      SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0,
                      UInt64 maxSize = 0)
   {
-    this->doUpdate(commandBuffer, scratchBuffer, buffer, offset, maxSize);
+    doUpdate(commandBuffer, scratchBuffer, buffer, offset, maxSize);
   }
 
   /// <summary>
@@ -4120,7 +4120,7 @@ public:
   /// <returns>The acceleration structure backing buffer, that stores its last build.</returns>
   /// <seealso cref="offset" />
   /// <seealso cref="size" />
-  inline SharedPtr<const IBuffer> buffer() const noexcept { return this->getBuffer(); }
+  inline SharedPtr<const IBuffer> buffer() const noexcept { return getBuffer(); }
 
   /// <summary>
   /// Returns the offset into <see cref="buffer" /> at which the acceleration structure is stored.
@@ -4235,10 +4235,10 @@ public:
     /// <returns>A reference to the current triangle mesh instance.</returns>
     TriangleMesh & operator=(const TriangleMesh & other)
     {
-      this->VertexBuffer = other.VertexBuffer;
-      this->IndexBuffer = other.IndexBuffer;
-      this->TransformBuffer = other.TransformBuffer;
-      this->Flags = other.Flags;
+      VertexBuffer = other.VertexBuffer;
+      IndexBuffer = other.IndexBuffer;
+      TransformBuffer = other.TransformBuffer;
+      Flags = other.Flags;
       return *this;
     }
 
@@ -4249,10 +4249,10 @@ public:
     /// <returns>A reference to the current triangle mesh instance.</returns>
     TriangleMesh & operator=(TriangleMesh && other)
     {
-      this->VertexBuffer = std::move(other.VertexBuffer);
-      this->IndexBuffer = std::move(other.IndexBuffer);
-      this->TransformBuffer = std::move(other.TransformBuffer);
-      this->Flags = std::move(other.Flags);
+      VertexBuffer = std::move(other.VertexBuffer);
+      IndexBuffer = std::move(other.IndexBuffer);
+      TransformBuffer = std::move(other.TransformBuffer);
+      Flags = std::move(other.Flags);
       return *this;
     }
 
@@ -4343,7 +4343,7 @@ public:
                               SharedPtr<const IBuffer> transformBuffer = nullptr,
                               GeometryFlags flags = GeometryFlags::None)
   {
-    this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
+    addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
   }
 
   /// <summary>
@@ -4368,7 +4368,7 @@ public:
   inline void addBoundingBox(SharedPtr<const IBuffer> buffer,
                              GeometryFlags flags = GeometryFlags::None)
   {
-    this->addBoundingBox(BoundingBoxes{.Buffer = buffer, .Flags = flags});
+    addBoundingBox(BoundingBoxes{.Buffer = buffer, .Flags = flags});
   }
 
   /// <summary>
@@ -4429,7 +4429,7 @@ public:
                    SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0,
                    bool copyBuildInfo = true) const
   {
-    this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
+    doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
   }
 
 public:
@@ -4580,7 +4580,7 @@ public:
                           UInt32 hitGroupOffset = 0, Byte mask = 0xFF,
                           InstanceFlags flags = InstanceFlags::None) noexcept
   {
-    this->addInstance(Instance{.BottomLevelAccelerationStructure = blas,
+    addInstance(Instance{.BottomLevelAccelerationStructure = blas,
                                .Id = id,
                                .Mask = mask,
                                .HitGroupOffset = hitGroupOffset,
@@ -4600,7 +4600,7 @@ public:
                           const TMatrix3x4<Float> & transform, UInt32 id, UInt32 hitGroupOffset = 0,
                           Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept
   {
-    this->addInstance(Instance{.BottomLevelAccelerationStructure = blas,
+    addInstance(Instance{.BottomLevelAccelerationStructure = blas,
                                .Transform = transform,
                                .Id = id,
                                .Mask = mask,
@@ -4659,7 +4659,7 @@ public:
                    SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0,
                    bool copyBuildInfo = true) const
   {
-    this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
+    doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
   }
 
 public:
@@ -4809,7 +4809,7 @@ public:
   constexpr void transition(const IBuffer & buffer, ResourceAccess accessBefore,
                             ResourceAccess accessAfter)
   {
-    this->doTransition(buffer, accessBefore, accessAfter);
+    doTransition(buffer, accessBefore, accessAfter);
   };
 
   /// <summary>
@@ -4827,7 +4827,7 @@ public:
   constexpr void transition(const IBuffer & buffer, UInt32 element, ResourceAccess accessBefore,
                             ResourceAccess accessAfter)
   {
-    this->doTransition(buffer, element, accessBefore, accessAfter);
+    doTransition(buffer, element, accessBefore, accessAfter);
   }
 
   /// <summary>
@@ -4842,7 +4842,7 @@ public:
   constexpr void transition(const IImage & image, ResourceAccess accessBefore,
                             ResourceAccess accessAfter, ImageLayout layout)
   {
-    this->doTransition(image, accessBefore, accessAfter, layout);
+    doTransition(image, accessBefore, accessAfter, layout);
   }
 
   /// <summary>
@@ -4863,7 +4863,7 @@ public:
                             UInt32 layers, UInt32 plane, ResourceAccess accessBefore,
                             ResourceAccess accessAfter, ImageLayout layout)
   {
-    this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter,
+    doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter,
                        layout);
   }
 
@@ -4885,7 +4885,7 @@ public:
                             ResourceAccess accessAfter, ImageLayout fromLayout,
                             ImageLayout toLayout)
   {
-    this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
+    doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
   }
 
   /// <summary>
@@ -4912,7 +4912,7 @@ public:
                             ResourceAccess accessAfter, ImageLayout fromLayout,
                             ImageLayout toLayout)
   {
-    this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter,
+    doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter,
                        fromLayout, toLayout);
   }
 
@@ -4956,7 +4956,7 @@ public:
   void update(UInt32 binding, const IBuffer & buffer, UInt32 bufferElement = 0, UInt32 elements = 0,
               UInt32 firstDescriptor = 0) const
   {
-    this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
+    doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
   }
 
   /// <summary>
@@ -4983,7 +4983,7 @@ public:
   void update(UInt32 binding, const IImage & texture, UInt32 descriptor = 0, UInt32 firstLevel = 0,
               UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const
   {
-    this->doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
+    doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
   }
 
   /// <summary>
@@ -4994,7 +4994,7 @@ public:
   /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
   void update(UInt32 binding, const ISampler & sampler, UInt32 descriptor = 0) const
   {
-    this->doUpdate(binding, sampler, descriptor);
+    doUpdate(binding, sampler, descriptor);
   }
 
   /// <summary>
@@ -5006,7 +5006,7 @@ public:
   void update(UInt32 binding, const IAccelerationStructure & accelerationStructure,
               UInt32 descriptor = 0) const
   {
-    this->doUpdate(binding, accelerationStructure, descriptor);
+    doUpdate(binding, accelerationStructure, descriptor);
   }
 
 private:
@@ -5111,7 +5111,7 @@ public:
   /// <returns>The layouts of the descriptors within the descriptor set.</returns>
   inline Enumerable<const IDescriptorLayout *> descriptors() const noexcept
   {
-    return this->getDescriptors();
+    return getDescriptors();
   }
 
   /// <summary>
@@ -5210,7 +5210,7 @@ public:
   inline UniquePtr<IDescriptorSet> allocate(
     const Enumerable<DescriptorBinding> & bindings = {}) const
   {
-    return this->allocate(0, bindings);
+    return allocate(0, bindings);
   }
 
   /// <summary>
@@ -5223,7 +5223,7 @@ public:
   inline UniquePtr<IDescriptorSet> allocate(
     UInt32 descriptors, const Enumerable<DescriptorBinding> & bindings = {}) const
   {
-    return this->getDescriptorSet(descriptors, bindings);
+    return getDescriptorSet(descriptors, bindings);
   }
 
   /// <summary>
@@ -5236,7 +5236,7 @@ public:
   inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(
     UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>> & bindings = {}) const
   {
-    return this->allocateMultiple(descriptorSets, 0, bindings);
+    return allocateMultiple(descriptorSets, 0, bindings);
   }
 
   /// <summary>
@@ -5250,7 +5250,7 @@ public:
     UInt32 descriptorSets,
     std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
   {
-    return this->allocateMultiple(descriptorSets, 0, bindingFactory);
+    return allocateMultiple(descriptorSets, 0, bindingFactory);
   }
 
   /// <summary>
@@ -5265,7 +5265,7 @@ public:
     UInt32 descriptorSets, UInt32 descriptors,
     const Enumerable<Enumerable<DescriptorBinding>> & bindings = {}) const
   {
-    return this->getDescriptorSets(descriptorSets, descriptors, bindings);
+    return getDescriptorSets(descriptorSets, descriptors, bindings);
   }
 
   /// <summary>
@@ -5280,7 +5280,7 @@ public:
     UInt32 descriptorSets, UInt32 descriptors,
     std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
   {
-    return this->getDescriptorSets(descriptorSets, descriptors, bindingFactory);
+    return getDescriptorSets(descriptorSets, descriptors, bindingFactory);
   }
 
   /// <summary>
@@ -5289,7 +5289,7 @@ public:
   /// <seealso cref="allocate" />
   inline void free(const IDescriptorSet & descriptorSet) const noexcept
   {
-    this->releaseDescriptorSet(descriptorSet);
+    releaseDescriptorSet(descriptorSet);
   }
 
 private:
@@ -5379,7 +5379,7 @@ public:
   /// <seealso cref="range" />
   inline Enumerable<const IPushConstantsRange *> ranges() const noexcept
   {
-    return this->getRanges();
+    return getRanges();
   }
 
 private:
@@ -5434,7 +5434,7 @@ public:
   /// <returns>The type of the shader record.</returns>
   inline ShaderRecordType type() const noexcept
   {
-    const auto & group = this->shaderGroup();
+    const auto & group = shaderGroup();
 
     if (std::holds_alternative<MeshGeometryHitGroup>(group))
     {
@@ -5741,7 +5741,7 @@ public:
   /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
   inline void addShaderRecord(StringView shaderName)
   {
-    auto shaderModule = this->findShaderModule(shaderName);
+    auto shaderModule = findShaderModule(shaderName);
 
     if (shaderModule == nullptr) [[unlikely]]
       throw InvalidArgumentException(
@@ -5749,13 +5749,13 @@ public:
         shaderName);
 
     if (shaderModule->type() == ShaderStage::AnyHit)
-      this->addShaderRecord(makeUnique<ShaderRecord<>>(
+      addShaderRecord(makeUnique<ShaderRecord<>>(
         IShaderRecord::MeshGeometryHitGroup{.AnyHitShader = shaderModule}));
     else if (shaderModule->type() == ShaderStage::ClosestHit)
-      this->addShaderRecord(makeUnique<ShaderRecord<>>(
+      addShaderRecord(makeUnique<ShaderRecord<>>(
         IShaderRecord::MeshGeometryHitGroup{.ClosestHitShader = shaderModule}));
     else
-      this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderModule));
+      addShaderRecord(makeUnique<ShaderRecord<>>(shaderModule));
   }
 
   /// <summary>
@@ -5773,7 +5773,7 @@ public:
     requires(std::alignment_of_v<TLocalData> == 8)
   inline void addShaderRecord(StringView shaderName, TLocalData payload)
   {
-    auto shaderModule = this->findShaderModule(shaderName);
+    auto shaderModule = findShaderModule(shaderName);
 
     if (shaderModule == nullptr) [[unlikely]]
       throw InvalidArgumentException(
@@ -5781,17 +5781,17 @@ public:
         shaderName);
 
     if (shaderModule->type() == ShaderStage::AnyHit)
-      this->addShaderRecord(
+      addShaderRecord(
         makeUnique<ShaderRecord<TLocalData>>(IShaderRecord::MeshGeometryHitGroup{.AnyHitShader =
                                                                                    shaderModule},
                                              payload));
     else if (shaderModule->type() == ShaderStage::ClosestHit)
-      this->addShaderRecord(
+      addShaderRecord(
         makeUnique<ShaderRecord<TLocalData>>(IShaderRecord::MeshGeometryHitGroup{.ClosestHitShader =
                                                                                    shaderModule},
                                              payload));
     else
-      this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderModule, payload));
+      addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderModule, payload));
   }
 
   /// <summary>
@@ -5805,12 +5805,12 @@ public:
   {
     IShaderRecord::MeshGeometryHitGroup hitGroup =
       {.ClosestHitShader = closestHitShaderName.has_value()
-                           ? this->findShaderModule(closestHitShaderName.value())
+                           ? findShaderModule(closestHitShaderName.value())
                            : nullptr,
        .AnyHitShader =
-         anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr};
+         anyHitShaderName.has_value() ? findShaderModule(anyHitShaderName.value()) : nullptr};
 
-    this->addShaderRecord(makeUnique<ShaderRecord<>>(hitGroup));
+    addShaderRecord(makeUnique<ShaderRecord<>>(hitGroup));
   }
 
   /// <summary>
@@ -5829,12 +5829,12 @@ public:
   {
     IShaderRecord::MeshGeometryHitGroup hitGroup =
       {.ClosestHitShader = closestHitShaderName.has_value()
-                           ? this->findShaderModule(closestHitShaderName.value())
+                           ? findShaderModule(closestHitShaderName.value())
                            : nullptr,
        .AnyHitShader =
-         anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr};
+         anyHitShaderName.has_value() ? findShaderModule(anyHitShaderName.value()) : nullptr};
 
-    this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(hitGroup, payload));
+    addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(hitGroup, payload));
   }
 
   /// <summary>
@@ -5843,7 +5843,7 @@ public:
   /// <param name="shaderGroup">The shader module or hit group.</param>
   inline void addShaderRecord(const ShaderRecord<>::shader_group_type & shaderGroup)
   {
-    this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderGroup));
+    addShaderRecord(makeUnique<ShaderRecord<>>(shaderGroup));
   }
 
   /// <summary>
@@ -5857,7 +5857,7 @@ public:
   inline void addShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup,
                               TLocalData payload)
   {
-    this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderGroup, payload));
+    addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderGroup, payload));
   }
 
   /// <summary>
@@ -5871,7 +5871,7 @@ public:
   /// <returns>A reference to the current shader record collection.</returns>
   inline ShaderRecordCollection && withShaderRecord(StringView shaderName)
   {
-    this->addShaderRecord(shaderName);
+    addShaderRecord(shaderName);
     return std::forward<ShaderRecordCollection>(*this);
   }
 
@@ -5890,7 +5890,7 @@ public:
     requires(std::alignment_of_v<TLocalData> == 8)
   inline ShaderRecordCollection && withShaderRecord(StringView shaderName, TLocalData payload)
   {
-    this->addShaderRecord(shaderName, payload);
+    addShaderRecord(shaderName, payload);
     return std::forward<ShaderRecordCollection>(*this);
   }
 
@@ -5903,7 +5903,7 @@ public:
   inline ShaderRecordCollection && withMeshGeometryHitGroupRecord(
     std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName)
   {
-    this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName);
+    addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName);
     return std::forward<ShaderRecordCollection>(*this);
   }
 
@@ -5921,7 +5921,7 @@ public:
     std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName,
     TLocalData payload)
   {
-    this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
+    addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
     return std::forward<ShaderRecordCollection>(*this);
   }
 
@@ -5932,7 +5932,7 @@ public:
   /// <returns>A reference to the current shader record collection.</returns>
   inline ShaderRecordCollection && withShaderRecord(ShaderRecord<>::shader_group_type shaderGroup)
   {
-    this->addShaderRecord(shaderGroup);
+    addShaderRecord(shaderGroup);
     return std::forward<ShaderRecordCollection>(*this);
   }
 
@@ -5948,7 +5948,7 @@ public:
   inline ShaderRecordCollection && withShaderRecord(
     ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload)
   {
-    this->addShaderRecord(shaderGroup, payload);
+    addShaderRecord(shaderGroup, payload);
     return std::forward<ShaderRecordCollection>(*this);
   }
 };
@@ -6018,7 +6018,7 @@ public:
   /// <returns>A pointer to the shader module, or `nullptr`, if it was not found.</returns>
   inline const IShaderModule * operator[](StringView name) const noexcept
   {
-    auto modules = this->getModules();
+    auto modules = getModules();
 
     if (auto match = std::ranges::find_if(modules,
                                           [name](auto module) {
@@ -6038,7 +6038,7 @@ public:
   /// <returns>`true`, if the program contains a shader module with the provided name or file name and `false` otherwise.</returns>
   inline bool contains(StringView name) const noexcept
   {
-    auto modules = this->getModules();
+    auto modules = getModules();
     return std::ranges::find_if(modules,
                                 [name](auto module) {
                                   return std::strcmp(module->fileName().c_str(), name.data()) == 0;
@@ -6052,7 +6052,7 @@ public:
   /// <returns>`true`, if the program contains the provided shader module and `false` otherwise.</returns>
   inline bool contains(const IShaderModule & module) const noexcept
   {
-    auto modules = this->getModules();
+    auto modules = getModules();
     return std::ranges::find_if(modules, [&module](auto m) { return m == &module; }) !=
            modules.end();
   };
@@ -6061,7 +6061,7 @@ public:
   /// Returns the modules, the shader program is build from.
   /// </summary>
   /// <returns>The modules, the shader program is build from.</returns>
-  inline Enumerable<const IShaderModule *> modules() const noexcept { return this->getModules(); }
+  inline Enumerable<const IShaderModule *> modules() const noexcept { return getModules(); }
 
   /// <summary>
   /// Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.
@@ -6089,7 +6089,7 @@ public:
   /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
   inline SharedPtr<IPipelineLayout> reflectPipelineLayout() const
   {
-    return this->parsePipelineLayout();
+    return parsePipelineLayout();
   };
 
   /// <summary>
@@ -6098,7 +6098,7 @@ public:
   /// <returns>The shader record collection instance.</returns>
   inline [[nodiscard]] ShaderRecordCollection buildShaderRecordCollection() const noexcept
   {
-    return ShaderRecordCollection(this->getptr());
+    return ShaderRecordCollection(getptr());
   }
 
 private:
@@ -6128,7 +6128,7 @@ public:
   /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
   inline Enumerable<const IDescriptorSetLayout *> descriptorSets() const noexcept
   {
-    return this->getDescriptorSets();
+    return getDescriptorSets();
   }
 
   /// <summary>
@@ -6156,7 +6156,7 @@ public:
   /// <returns>All vertex buffer layouts of the input assembly.</returns>
   inline Enumerable<const IVertexBufferLayout *> vertexBufferLayouts() const noexcept
   {
-    return this->getVertexBufferLayouts();
+    return getVertexBufferLayouts();
   }
 
   /// <summary>
@@ -6199,13 +6199,13 @@ public:
   /// Returns the shader program used by the pipeline.
   /// </summary>
   /// <returns>The shader program used by the pipeline.</returns>
-  inline SharedPtr<const IShaderProgram> program() const noexcept { return this->getProgram(); }
+  inline SharedPtr<const IShaderProgram> program() const noexcept { return getProgram(); }
 
   /// <summary>
   /// Returns the layout of the render pipeline.
   /// </summary>
   /// <returns>The layout of the render pipeline.</returns>
-  inline SharedPtr<const IPipelineLayout> layout() const noexcept { return this->getLayout(); }
+  inline SharedPtr<const IPipelineLayout> layout() const noexcept { return getLayout(); }
 
 private:
   virtual SharedPtr<const IShaderProgram> getProgram() const noexcept = 0;
@@ -6265,7 +6265,7 @@ public:
   inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore,
                                                        PipelineStage syncAfter) const noexcept
   {
-    return this->getBarrier(syncBefore, syncAfter);
+    return getBarrier(syncBefore, syncAfter);
   }
 
   /// <summary>
@@ -6277,7 +6277,7 @@ public:
   /// order. You might have to manually synchronize barrier execution.
   /// </remarks>
   /// <param name="barrier">The barrier containing the transitions to perform.</param>
-  inline void barrier(const IBarrier & barrier) const noexcept { this->cmdBarrier(barrier); }
+  inline void barrier(const IBarrier & barrier) const noexcept { cmdBarrier(barrier); }
 
   /// <summary>
   /// Uses the image at level *0* to generate mip-maps for the remaining levels.
@@ -6292,7 +6292,7 @@ public:
   /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
   /// </remarks>
   /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-  inline void generateMipMaps(IImage & image) noexcept { this->cmdGenerateMipMaps(image); }
+  inline void generateMipMaps(IImage & image) noexcept { cmdGenerateMipMaps(image); }
 
   /// <summary>
   /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
@@ -6311,7 +6311,7 @@ public:
   inline void transfer(const IBuffer & source, const IBuffer & target, UInt32 sourceElement = 0,
                        UInt32 targetElement = 0, UInt32 elements = 1) const
   {
-    this->cmdTransfer(source, target, sourceElement, targetElement, elements);
+    cmdTransfer(source, target, sourceElement, targetElement, elements);
   }
 
   /// <summary>
@@ -6338,7 +6338,7 @@ public:
                        UInt32 sourceElement = 0, UInt32 targetElement = 0,
                        UInt32 elements = 1) const
   {
-    this->cmdTransfer(source, target, sourceElement, targetElement, elements);
+    cmdTransfer(source, target, sourceElement, targetElement, elements);
   }
 
   /// <summary>
@@ -6357,7 +6357,7 @@ public:
   inline void transfer(const void * const data, size_t size, const IBuffer & target,
                        UInt32 targetElement = 0, UInt32 elements = 1) const
   {
-    this->cmdTransfer(data, size, target, targetElement, elements);
+    cmdTransfer(data, size, target, targetElement, elements);
   }
 
   /// <summary>
@@ -6375,7 +6375,7 @@ public:
   inline void transfer(Span<const void * const> data, size_t elementSize, const IBuffer & target,
                        UInt32 targetElement = 0) const
   {
-    this->cmdTransfer(data, elementSize, target, targetElement);
+    cmdTransfer(data, elementSize, target, targetElement);
   }
 
   /// <summary>
@@ -6416,7 +6416,7 @@ public:
   inline void transfer(const IBuffer & source, const IImage & target, UInt32 sourceElement = 0,
                        UInt32 firstSubresource = 0, UInt32 elements = 1) const
   {
-    this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
+    cmdTransfer(source, target, sourceElement, firstSubresource, elements);
   }
 
   /// <summary>
@@ -6465,7 +6465,7 @@ public:
                        UInt32 sourceElement = 0, UInt32 firstSubresource = 0,
                        UInt32 elements = 1) const
   {
-    this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
+    cmdTransfer(source, target, sourceElement, firstSubresource, elements);
   }
 
   /// <summary>
@@ -6484,7 +6484,7 @@ public:
   inline void transfer(const void * const data, size_t size, const IImage & target,
                        UInt32 subresource = 0) const
   {
-    this->cmdTransfer(data, size, target, subresource);
+    cmdTransfer(data, size, target, subresource);
   }
 
   /// <summary>
@@ -6503,7 +6503,7 @@ public:
   inline void transfer(Span<const void * const> data, size_t elementSize, const IImage & target,
                        UInt32 firstSubresource = 0, UInt32 elements = 1) const
   {
-    this->cmdTransfer(data, elementSize, target, firstSubresource, elements);
+    cmdTransfer(data, elementSize, target, firstSubresource, elements);
   }
 
   /// <summary>
@@ -6522,7 +6522,7 @@ public:
   inline void transfer(const IImage & source, const IImage & target, UInt32 sourceSubresource = 0,
                        UInt32 targetSubresource = 0, UInt32 subresources = 1) const
   {
-    this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
+    cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
   }
 
   /// <summary>
@@ -6549,7 +6549,7 @@ public:
                        UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0,
                        UInt32 subresources = 1) const
   {
-    this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
+    cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
   }
 
   /// <summary>
@@ -6590,7 +6590,7 @@ public:
   inline void transfer(const IImage & source, const IBuffer & target, UInt32 firstSubresource = 0,
                        UInt32 targetElement = 0, UInt32 subresources = 1) const
   {
-    this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
+    cmdTransfer(source, target, firstSubresource, targetElement, subresources);
   }
 
   /// <summary>
@@ -6639,13 +6639,13 @@ public:
                        UInt32 firstSubresource = 0, UInt32 targetElement = 0,
                        UInt32 subresources = 1) const
   {
-    this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
+    cmdTransfer(source, target, firstSubresource, targetElement, subresources);
   }
 
   /// <summary>
   /// Sets the active pipeline state.
   /// </summary>
-  inline void use(const IPipeline & pipeline) const noexcept { this->cmdUse(pipeline); }
+  inline void use(const IPipeline & pipeline) const noexcept { cmdUse(pipeline); }
 
   /// <summary>
   /// Binds the provided descriptor to the last pipeline that was used by the command buffer.
@@ -6653,7 +6653,7 @@ public:
   /// <param name="descriptorSet">The descriptor set to bind.</param>
   /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
   /// <seealso cref="use" />
-  inline void bind(const IDescriptorSet & descriptorSet) const { this->cmdBind(descriptorSet); }
+  inline void bind(const IDescriptorSet & descriptorSet) const { cmdBind(descriptorSet); }
 
   /// <summary>
   /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
@@ -6704,7 +6704,7 @@ public:
   /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
   inline void bind(Span<const IDescriptorSet *> descriptorSets) const noexcept
   {
-    this->cmdBind(descriptorSets);
+    cmdBind(descriptorSets);
   }
 
   /// <summary>
@@ -6714,7 +6714,7 @@ public:
   /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
   inline void bind(const IDescriptorSet & descriptorSet, const IPipeline & pipeline) const noexcept
   {
-    this->cmdBind(descriptorSet, pipeline);
+    cmdBind(descriptorSet, pipeline);
   }
 
   /// <summary>
@@ -6770,7 +6770,7 @@ public:
   inline void bind(Span<const IDescriptorSet *> descriptorSets,
                    const IPipeline & pipeline) const noexcept
   {
-    this->cmdBind(descriptorSets, pipeline);
+    cmdBind(descriptorSets, pipeline);
   }
 
   /// <summary>
@@ -6783,7 +6783,7 @@ public:
   /// <seealso cref="VertexBuffer" />
   /// <seealso cref="draw" />
   /// <seealso cref="drawIndexed" />
-  inline void bind(const IVertexBuffer & buffer) const noexcept { this->cmdBind(buffer); }
+  inline void bind(const IVertexBuffer & buffer) const noexcept { cmdBind(buffer); }
 
   /// <summary>
   /// Binds a index buffer to the pipeline.
@@ -6794,7 +6794,7 @@ public:
   /// <param name="buffer">The index buffer to bind to the pipeline.</param>
   /// <seealso cref="IndexBuffer" />
   /// <seealso cref="drawIndexed" />
-  inline void bind(const IIndexBuffer & buffer) const noexcept { this->cmdBind(buffer); }
+  inline void bind(const IIndexBuffer & buffer) const noexcept { cmdBind(buffer); }
 
   /// <summary>
   /// Executes a compute shader.
@@ -6809,7 +6809,7 @@ public:
   /// <param name="x">The number of thread groups along the x dimension.</param>
   /// <param name="y">The number of thread groups along the y dimension.</param>
   /// <param name="z">The number of thread groups along the z dimension.</param>
-  inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept { this->dispatch({x, y, z}); }
+  inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept { dispatch({x, y, z}); }
 
   /// <summary>
   /// Executes a set of indirect dispatches.
@@ -6821,7 +6821,7 @@ public:
   inline void dispatchIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                                UInt64 offset = 0) const noexcept
   {
-    this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
+    cmdDispatchIndirect(batchBuffer, batchCount, offset);
   }
 
   /// <summary>
@@ -6844,7 +6844,7 @@ public:
   /// <param name="z">The number of thread groups along the z dimension.</param>
   inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept
   {
-    this->dispatchMesh({x, y, z});
+    dispatchMesh({x, y, z});
   }
 
   /// <summary>
@@ -6857,7 +6857,7 @@ public:
   inline void dispatchMeshIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                                    UInt64 offset = 0) const noexcept
   {
-    this->cmdDispatchMeshIndirect(batchBuffer, batchCount, offset);
+    cmdDispatchMeshIndirect(batchBuffer, batchCount, offset);
   }
 
   /// <summary>
@@ -6873,7 +6873,7 @@ public:
     const IBuffer & batchBuffer, const IBuffer & countBuffer, UInt64 offset = 0,
     UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept
   {
-    this->cmdDispatchMeshIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+    cmdDispatchMeshIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
   }
 
   /// <summary>
@@ -6897,7 +6897,7 @@ public:
                         const IBuffer * hitShaderBindingTable = nullptr,
                         const IBuffer * callableShaderBindingTable = nullptr) const noexcept
   {
-    this->cmdTraceRays(width, height, depth, offsets, rayGenerationShaderBindingTable,
+    cmdTraceRays(width, height, depth, offsets, rayGenerationShaderBindingTable,
                        missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
   }
 
@@ -6919,7 +6919,7 @@ public:
                         const IBuffer * hitShaderBindingTable = nullptr,
                         const IBuffer * callableShaderBindingTable = nullptr) const noexcept
   {
-    this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets,
+    traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets,
                     rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable,
                     callableShaderBindingTable);
   }
@@ -6948,7 +6948,7 @@ public:
   inline void draw(const IVertexBuffer & vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0,
                    UInt32 firstInstance = 0) const
   {
-    this->cmdDraw(vertexBuffer, instances, firstVertex, firstInstance);
+    cmdDraw(vertexBuffer, instances, firstVertex, firstInstance);
   }
 
   /// <summary>
@@ -6961,7 +6961,7 @@ public:
   inline void drawIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                            UInt64 offset = 0) const noexcept
   {
-    this->cmdDrawIndirect(batchBuffer, batchCount, offset);
+    cmdDrawIndirect(batchBuffer, batchCount, offset);
   }
 
   /// <summary>
@@ -6977,7 +6977,7 @@ public:
                            UInt64 offset = 0, UInt64 countOffset = 0,
                            UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept
   {
-    this->cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+    cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
   }
 
   /// <summary>
@@ -7007,7 +7007,7 @@ public:
                           UInt32 firstIndex = 0, Int32 vertexOffset = 0,
                           UInt32 firstInstance = 0) const
   {
-    this->cmdDrawIndexed(indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
+    cmdDrawIndexed(indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
   }
 
   /// <summary>
@@ -7026,7 +7026,7 @@ public:
                           UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0,
                           UInt32 firstInstance = 0) const
   {
-    this->cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset,
+    cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset,
                          firstInstance);
   }
 
@@ -7040,7 +7040,7 @@ public:
   inline void drawIndexedIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                                   UInt64 offset = 0) const noexcept
   {
-    this->cmdDrawIndexedIndirect(batchBuffer, batchCount, offset);
+    cmdDrawIndexedIndirect(batchBuffer, batchCount, offset);
   }
 
   /// <summary>
@@ -7056,7 +7056,7 @@ public:
     const IBuffer & batchBuffer, const IBuffer & countBuffer, UInt64 offset = 0,
     UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept
   {
-    this->cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+    cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
   }
 
   /// <summary>
@@ -7067,7 +7067,7 @@ public:
   inline void pushConstants(const IPushConstantsLayout & layout,
                             const void * const memory) const noexcept
   {
-    this->cmdPushConstants(layout, memory);
+    cmdPushConstants(layout, memory);
   }
 
   /// <summary>
@@ -7128,7 +7128,7 @@ public:
   /// <param name="commandBuffer">The secondary command buffer/bundle to execute.</param>
   inline void execute(SharedPtr<const ICommandBuffer> commandBuffer) const
   {
-    this->cmdExecute(commandBuffer);
+    cmdExecute(commandBuffer);
   }
 
   /// <summary>
@@ -7137,7 +7137,7 @@ public:
   /// <param name="commandBuffers">The command buffers to execute.</param>
   inline void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const
   {
-    this->cmdExecute(commandBuffers);
+    cmdExecute(commandBuffers);
   }
 
   /// <summary>
@@ -7156,7 +7156,7 @@ public:
                                          const SharedPtr<const IBuffer> scratchBuffer,
                                          const IBuffer & buffer, UInt64 offset = 0) const
   {
-    this->cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
+    cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
   }
 
   /// <summary>
@@ -7175,7 +7175,7 @@ public:
                                          const SharedPtr<const IBuffer> scratchBuffer,
                                          const IBuffer & buffer, UInt64 offset = 0) const
   {
-    this->cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
+    cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
   }
 
   /// <summary>
@@ -7194,7 +7194,7 @@ public:
                                           const SharedPtr<const IBuffer> scratchBuffer,
                                           const IBuffer & buffer, UInt64 offset = 0) const
   {
-    this->cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
+    cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
   }
 
   /// <summary>
@@ -7213,7 +7213,7 @@ public:
                                           const SharedPtr<const IBuffer> scratchBuffer,
                                           const IBuffer & buffer, UInt64 offset = 0) const
   {
-    this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
+    cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
   }
 
   /// <summary>
@@ -7233,7 +7233,7 @@ public:
                                         const IBottomLevelAccelerationStructure & to,
                                         bool compress = false) const noexcept
   {
-    this->cmdCopyAccelerationStructure(from, to, compress);
+    cmdCopyAccelerationStructure(from, to, compress);
   }
 
   /// <summary>
@@ -7253,7 +7253,7 @@ public:
                                         const ITopLevelAccelerationStructure & to,
                                         bool compress = false) const noexcept
   {
-    this->cmdCopyAccelerationStructure(from, to, compress);
+    cmdCopyAccelerationStructure(from, to, compress);
   }
 
 protected:
@@ -7372,14 +7372,14 @@ public:
   /// <returns>The input assembler state used by the render pipeline.</returns>
   inline SharedPtr<IInputAssembler> inputAssembler() const noexcept
   {
-    return this->getInputAssembler();
+    return getInputAssembler();
   }
 
   /// <summary>
   /// Returns the rasterizer state used by the render pipeline.
   /// </summary>
   /// <returns>The rasterizer state used by the render pipeline.</returns>
-  inline SharedPtr<IRasterizer> rasterizer() const noexcept { return this->getRasterizer(); }
+  inline SharedPtr<IRasterizer> rasterizer() const noexcept { return getRasterizer(); }
 
   /// <summary>
   /// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.
@@ -7493,7 +7493,7 @@ public:
     ShaderBindingTableOffsets & offsets,
     ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept
   {
-    return this->getShaderBindingTable(offsets, groups);
+    return getShaderBindingTable(offsets, groups);
   }
 
 private:
@@ -7665,7 +7665,7 @@ public:
   /// <seealso cref="unmapRenderTarget" />
   inline void mapRenderTarget(const RenderTarget & renderTarget)
   {
-    this->mapRenderTarget(renderTarget, renderTarget.name());
+    mapRenderTarget(renderTarget, renderTarget.name());
   }
 
   /// <summary>
@@ -7678,7 +7678,7 @@ public:
   inline void mapRenderTargets(Span<const RenderTarget> renderTargets)
   {
     std::ranges::for_each(renderTargets,
-                          [this](auto & renderTarget) { this->mapRenderTarget(renderTarget); });
+                          [this](auto & renderTarget) { mapRenderTarget(renderTarget); });
   }
 
   /// <summary>
@@ -7695,7 +7695,7 @@ public:
   /// Returns all images contained by the frame buffer.
   /// </summary>
   /// <returns>A set of pointers to the images contained by the frame buffer.</returns>
-  inline Enumerable<const IImage *> images() const noexcept { return this->getImages(); }
+  inline Enumerable<const IImage *> images() const noexcept { return getImages(); }
 
   /// <summary>
   /// Returns an image from the frame buffer.
@@ -7778,7 +7778,7 @@ public:
   inline void addImage(Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1,
                        ResourceUsage usage = ResourceUsage::FrameBufferImage)
   {
-    this->addImage("", format, samples, usage);
+    addImage("", format, samples, usage);
   }
 
   /// <summary>
@@ -7834,7 +7834,7 @@ public:
                        MultiSamplingLevel samples = MultiSamplingLevel::x1,
                        ResourceUsage usage = ResourceUsage::FrameBufferImage)
   {
-    this->addImage(renderTarget.name(), renderTarget, samples, usage);
+    addImage(renderTarget.name(), renderTarget, samples, usage);
   }
 
   /// <summary>
@@ -7976,7 +7976,7 @@ public:
   /// <seealso cref="commandBuffer" />
   inline Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept
   {
-    return this->getCommandBuffers();
+    return getCommandBuffers();
   }
 
   /// <summary>
@@ -7989,7 +7989,7 @@ public:
   /// <seealso cref="commandBuffers" />
   inline SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const
   {
-    return this->getCommandBuffer(index);
+    return getCommandBuffer(index);
   }
 
   /// <summary>
@@ -8049,7 +8049,7 @@ public:
   /// Begins the render pass.
   /// </summary>
   /// <param name="frameBuffer">The frame buffer to obtain input attachments and render targets from.</param>
-  inline void begin(const IFrameBuffer & frameBuffer) const { this->beginRenderPass(frameBuffer); };
+  inline void begin(const IFrameBuffer & frameBuffer) const { beginRenderPass(frameBuffer); };
 
   /// <summary>
   /// Ends the render pass.
@@ -8144,7 +8144,7 @@ public:
     StringView name = "") noexcept
   {
     auto timingEvent = SharedPtr<TimingEvent>(new TimingEvent(*this, name));
-    this->addTimingEvent(timingEvent);
+    addTimingEvent(timingEvent);
     return timingEvent;
   }
 
@@ -8223,7 +8223,7 @@ public:
   /// Returns an array of the swap chain present images.
   /// </summary>
   /// <returns>Returns an array of the swap chain present images.</returns>
-  inline Enumerable<IImage *> images() const noexcept { return this->getImages(); };
+  inline Enumerable<IImage *> images() const noexcept { return getImages(); };
 
   /// <summary>
   /// Queues a present that gets executed after <paramref name="fence" /> has been signaled on the default graphics queue.
@@ -8432,7 +8432,7 @@ public:
   inline SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false,
                                                        bool secondary = false) const
   {
-    return this->getCommandBuffer(beginRecording, secondary);
+    return getCommandBuffer(beginRecording, secondary);
   }
 
   /// <summary>
@@ -8449,7 +8449,7 @@ public:
   /// <seealso cref="waitFor" />
   inline UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const
   {
-    return this->submitCommandBuffer(commandBuffer);
+    return submitCommandBuffer(commandBuffer);
   }
 
   /// <summary>
@@ -8466,7 +8466,7 @@ public:
   /// <seealso cref="waitFor" />
   inline UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const
   {
-    return this->submitCommandBuffer(commandBuffer);
+    return submitCommandBuffer(commandBuffer);
   }
 
   /// <summary>
@@ -8483,7 +8483,7 @@ public:
   /// <seealso cref="waitFor" />
   inline UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>> & commandBuffers) const
   {
-    return this->submitCommandBuffers(commandBuffers);
+    return submitCommandBuffers(commandBuffers);
   }
 
   /// <summary>
@@ -8500,7 +8500,7 @@ public:
   /// <seealso cref="waitFor" />
   inline UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>> & commandBuffers) const
   {
-    return this->submitCommandBuffers(
+    return submitCommandBuffers(
       commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
   }
 
@@ -8525,7 +8525,7 @@ public:
   /// <param name="fence">The value of the fence to wait upon on the other queue.</param>
   inline void waitFor(const ICommandQueue & queue, UInt64 fence) const
   {
-    this->waitForQueue(queue, fence);
+    waitForQueue(queue, fence);
   }
 
   /// <summary>
@@ -8571,7 +8571,7 @@ public:
                                          UInt32 elements = 1,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getBuffer(type, heap, elementSize, elements, usage);
+    return getBuffer(type, heap, elementSize, elements, usage);
   };
 
   /// <summary>
@@ -8588,7 +8588,7 @@ public:
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
     auto & descriptor = descriptorSet.descriptor(binding);
-    return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage);
+    return createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage);
   };
 
   /// <summary>
@@ -8605,7 +8605,7 @@ public:
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
     auto & descriptor = descriptorSet.descriptor(binding);
-    return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage);
+    return createBuffer(descriptor.type(), heap, elementSize, elements, usage);
   };
 
   /// <summary>
@@ -8622,7 +8622,7 @@ public:
                                          ResourceHeap heap, UInt32 elementSize, UInt32 elements,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize,
+    return createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize,
                               elements, usage);
   };
 
@@ -8640,7 +8640,7 @@ public:
                                          ResourceHeap heap, UInt32 elements = 1,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements,
+    return createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements,
                               usage);
   };
 
@@ -8658,7 +8658,7 @@ public:
                                          size_t elementSize, UInt32 elements,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getBuffer(name, type, heap, elementSize, elements, usage);
+    return getBuffer(name, type, heap, elementSize, elements, usage);
   };
 
   /// <summary>
@@ -8677,7 +8677,7 @@ public:
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
     auto & descriptor = descriptorSet.descriptor(binding);
-    return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements,
+    return createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements,
                               usage);
   };
 
@@ -8698,7 +8698,7 @@ public:
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
     auto & descriptor = descriptorSet.descriptor(binding);
-    return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage);
+    return createBuffer(name, descriptor.type(), heap, elementSize, elements, usage);
   };
 
   /// <summary>
@@ -8717,7 +8717,7 @@ public:
                                          UInt32 elements = 1,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap,
+    return createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap,
                               elements, usage);
   };
 
@@ -8738,7 +8738,7 @@ public:
                                          size_t elementSize, UInt32 elements = 1,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap,
+    return createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap,
                               elementSize, elements, usage);
   };
 
@@ -8759,7 +8759,7 @@ public:
     const IVertexBufferLayout & layout, ResourceHeap heap, UInt32 elements = 1,
     ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getVertexBuffer(layout, heap, elements, usage);
+    return getVertexBuffer(layout, heap, elements, usage);
   }
 
   /// <summary>
@@ -8780,7 +8780,7 @@ public:
     const String & name, const IVertexBufferLayout & layout, ResourceHeap heap, UInt32 elements = 1,
     ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getVertexBuffer(name, layout, heap, elements, usage);
+    return getVertexBuffer(name, layout, heap, elements, usage);
   }
 
   /// <summary>
@@ -8800,7 +8800,7 @@ public:
     const IIndexBufferLayout & layout, ResourceHeap heap, UInt32 elements,
     ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getIndexBuffer(layout, heap, elements, usage);
+    return getIndexBuffer(layout, heap, elements, usage);
   }
 
   /// <summary>
@@ -8821,7 +8821,7 @@ public:
     const String & name, const IIndexBufferLayout & layout, ResourceHeap heap, UInt32 elements,
     ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getIndexBuffer(name, layout, heap, elements, usage);
+    return getIndexBuffer(name, layout, heap, elements, usage);
   }
 
   /// <summary>
@@ -8846,7 +8846,7 @@ public:
                                          MultiSamplingLevel samples = MultiSamplingLevel::x1,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getTexture(format, size, dimension, levels, layers, samples, usage);
+    return getTexture(format, size, dimension, levels, layers, samples, usage);
   }
 
   /// <summary>
@@ -8872,7 +8872,7 @@ public:
                                          MultiSamplingLevel samples = MultiSamplingLevel::x1,
                                          ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getTexture(name, format, size, dimension, levels, layers, samples, usage);
+    return getTexture(name, format, size, dimension, levels, layers, samples, usage);
   }
 
   /// <summary>
@@ -8894,7 +8894,7 @@ public:
     MultiSamplingLevel samples = MultiSamplingLevel::x1,
     ResourceUsage usage = ResourceUsage::Default) const
   {
-    return this->getTextures(elements, format, size, dimension, layers, levels, samples, usage);
+    return getTextures(elements, format, size, dimension, layers, levels, samples, usage);
   }
 
   /// <summary>
@@ -8919,7 +8919,7 @@ public:
     Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f,
     Float anisotropy = 0.f) const
   {
-    return this->getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias,
+    return getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias,
                             maxLod, minLod, anisotropy);
   }
 
@@ -8947,7 +8947,7 @@ public:
     Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f,
     Float anisotropy = 0.f) const
   {
-    return this->getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
+    return getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
                             mipMapBias, maxLod, minLod, anisotropy);
   }
 
@@ -8975,7 +8975,7 @@ public:
     Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f,
     Float anisotropy = 0.f) const
   {
-    return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
+    return getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
                              mipMapBias, maxLod, minLod, anisotropy);
   }
 
@@ -8991,7 +8991,7 @@ public:
   inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(
     AccelerationStructureFlags flags = AccelerationStructureFlags::None) const
   {
-    return this->createBottomLevelAccelerationStructure("", flags);
+    return createBottomLevelAccelerationStructure("", flags);
   }
 
   /// <summary>
@@ -9007,7 +9007,7 @@ public:
   inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(
     StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const
   {
-    return this->getBlas(name, flags);
+    return getBlas(name, flags);
   }
 
   /// <summary>
@@ -9022,7 +9022,7 @@ public:
   inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(
     AccelerationStructureFlags flags = AccelerationStructureFlags::None) const
   {
-    return this->createTopLevelAccelerationStructure("", flags);
+    return createTopLevelAccelerationStructure("", flags);
   }
 
   /// <summary>
@@ -9038,7 +9038,7 @@ public:
   inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(
     StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const
   {
-    return this->getTlas(name, flags);
+    return getTlas(name, flags);
   }
 
 private:
@@ -9187,7 +9187,7 @@ public:
   /// <seealso cref="createQueue" />
   inline const ICommandQueue & defaultQueue(QueueType type) const
   {
-    return this->getDefaultQueue(type);
+    return getDefaultQueue(type);
   }
 
   /// <summary>
@@ -9211,7 +9211,7 @@ public:
   inline const ICommandQueue * createQueue(QueueType type,
                                            QueuePriority priority = QueuePriority::Normal) noexcept
   {
-    return this->getNewQueue(type, priority);
+    return getNewQueue(type, priority);
   }
 
   /// <summary>
@@ -9223,7 +9223,7 @@ public:
   inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore,
                                                        PipelineStage syncAfter) const noexcept
   {
-    return this->getNewBarrier(syncBefore, syncAfter);
+    return getNewBarrier(syncBefore, syncAfter);
   }
 
   /// <summary>
@@ -9234,7 +9234,7 @@ public:
   inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(
     const Size2d & renderArea) const noexcept
   {
-    return this->makeFrameBuffer("", renderArea);
+    return makeFrameBuffer("", renderArea);
   }
 
   /// <summary>
@@ -9246,7 +9246,7 @@ public:
   inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(
     StringView name, const Size2d & renderArea) const noexcept
   {
-    return this->getNewFrameBuffer(name, renderArea);
+    return getNewFrameBuffer(name, renderArea);
   }
 
   /// <summary>
@@ -9285,7 +9285,7 @@ public:
                                                 UInt64 & bufferSize, UInt64 & scratchSize,
                                                 bool forUpdate = false) const
   {
-    this->getAccelerationStructureSizes(blas, bufferSize, scratchSize, forUpdate);
+    getAccelerationStructureSizes(blas, bufferSize, scratchSize, forUpdate);
   }
 
   /// <summary>
@@ -9306,7 +9306,7 @@ public:
                                                 UInt64 & bufferSize, UInt64 & scratchSize,
                                                 bool forUpdate = false) const
   {
-    this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
+    getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
   }
 
 private:
@@ -9349,7 +9349,7 @@ public:
   /// Lists all available graphics adapters.
   /// </summary>
   /// <returns>An array of pointers to all available graphics adapters.</returns>
-  inline Enumerable<const IGraphicsAdapter *> listAdapters() const { return this->getAdapters(); }
+  inline Enumerable<const IGraphicsAdapter *> listAdapters() const { return getAdapters(); }
 
   /// <summary>
   /// Finds an adapter using its unique ID.
@@ -9386,7 +9386,7 @@ public:
   /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
   virtual inline const IGraphicsDevice * operator[](const String & name) const noexcept
   {
-    return this->device(name);
+    return device(name);
   };
 
   /// <summary>
@@ -9396,7 +9396,7 @@ public:
   /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
   virtual inline IGraphicsDevice * operator[](const String & name) noexcept
   {
-    return this->device(name);
+    return device(name);
   };
 
 private:

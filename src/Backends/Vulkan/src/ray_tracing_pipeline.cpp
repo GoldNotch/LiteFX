@@ -417,16 +417,16 @@ VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice & device,
                                                    SharedPtr<VulkanShaderProgram> shaderProgram,
                                                    ShaderRecordCollection && shaderRecords,
                                                    UInt32 maxRecursionDepth, UInt32 maxPayloadSize,
-                                                   UInt32 maxAttributeSize, const String & name)
+                                                   UInt32 maxAttributeSize, const String & name_)
   : m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram,
                                                    maxRecursionDepth, maxPayloadSize,
                                                    maxAttributeSize, std::move(shaderRecords)))
   , VulkanPipelineState(VK_NULL_HANDLE)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice & device,
@@ -438,7 +438,7 @@ VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice & device,
 
 VulkanRayTracingPipeline::~VulkanRayTracingPipeline() noexcept
 {
-  ::vkDestroyPipeline(m_impl->m_device.handle(), this->handle(), nullptr);
+  ::vkDestroyPipeline(m_impl->m_device.handle(), handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRayTracingPipeline::program() const noexcept
@@ -479,8 +479,7 @@ UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(
 
 void VulkanRayTracingPipeline::use(const VulkanCommandBuffer & commandBuffer) const noexcept
 {
-  ::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
-                      this->handle());
+  ::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, handle());
 }
 
 void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer & commandBuffer,
@@ -538,18 +537,18 @@ VulkanRayTracingPipelineBuilder::VulkanRayTracingPipelineBuilder(
   : RayTracingPipelineBuilder(UniquePtr<VulkanRayTracingPipeline>(
       new VulkanRayTracingPipeline(device, std::move(shaderRecords))))
 {
-  this->instance()->name() = name;
+  instance()->name() = name;
 }
 
 VulkanRayTracingPipelineBuilder::~VulkanRayTracingPipelineBuilder() noexcept = default;
 
 void VulkanRayTracingPipelineBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layout = m_state.pipelineLayout;
-  instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
-  instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
-  instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
-  instance->handle() = instance->m_impl->initialize();
+  auto && instance_ = instance();
+  instance_->m_impl->m_layout = m_state.pipelineLayout;
+  instance_->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
+  instance_->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
+  instance_->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
+  instance_->handle() = instance_->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

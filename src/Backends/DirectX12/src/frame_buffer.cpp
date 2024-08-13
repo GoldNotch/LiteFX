@@ -140,7 +140,7 @@ public:
     m_images = std::move(images);
 
     // Re-initialize to update heaps and descriptors.
-    this->initialize();
+    initialize();
   }
 };
 
@@ -225,7 +225,7 @@ void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget & renderTarget, St
                                         [nameHash](UniquePtr<IDirectX12Image> & image)
                                         { return hash(image->name()) == nameHash; });
       match != m_impl->m_images.end())
-    this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+    mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
   else
     throw InvalidArgumentException(
       "name", "The frame buffer does not contain an image with the name \"{0}\".", name);
@@ -317,11 +317,11 @@ void DirectX12FrameBuffer::addImage(const String & name, const RenderTarget & re
   m_impl->initialize();
 
   // Map the render target to the image.
-  this->mapRenderTarget(renderTarget, static_cast<UInt32>(index));
+  mapRenderTarget(renderTarget, static_cast<UInt32>(index));
 }
 
 void DirectX12FrameBuffer::resize(const Size2d & renderArea)
 {
   m_impl->resize(renderArea);
-  this->resized(this, {renderArea});
+  resized(this, {renderArea});
 }

@@ -44,19 +44,19 @@ public:
 VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize,
                            size_t alignment, ResourceUsage usage, const VulkanDevice & device,
                            const VmaAllocator & allocator, const VmaAllocation & allocation,
-                           const String & name)
+                           const String & name_)
   : m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, usage, device,
                                        allocator, allocation))
   , Resource<VkBuffer>(buffer)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 VulkanBuffer::~VulkanBuffer() noexcept
 {
-  ::vmaDestroyBuffer(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
-  LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", reinterpret_cast<void *>(this->handle()));
+  ::vmaDestroyBuffer(m_impl->m_allocator, handle(), m_impl->m_allocation);
+  LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", reinterpret_cast<void *>(handle()));
 }
 
 BufferType VulkanBuffer::type() const noexcept { return m_impl->m_type; }
@@ -65,7 +65,7 @@ UInt32 VulkanBuffer::elements() const noexcept { return m_impl->m_elements; }
 
 size_t VulkanBuffer::size() const noexcept
 {
-  return static_cast<size_t>(m_impl->m_elements) * this->alignedElementSize();
+  return static_cast<size_t>(m_impl->m_elements) * alignedElementSize();
 }
 
 size_t VulkanBuffer::elementSize() const noexcept { return m_impl->m_elementSize; }
@@ -84,12 +84,12 @@ ResourceUsage VulkanBuffer::usage() const noexcept { return m_impl->m_usage; }
 UInt64 VulkanBuffer::virtualAddress() const noexcept
 {
   VkBufferDeviceAddressInfo info = {.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-                                    .buffer = this->handle()};
+                                    .buffer = handle()};
 
   return static_cast<UInt64>(::vkGetBufferDeviceAddress(m_impl->m_device.handle(), &info));
 }
 
-void VulkanBuffer::map(const void * const data, size_t size, UInt32 element)
+void VulkanBuffer::map(const void * const data, size_t size_, UInt32 element)
 {
   if (element >= m_impl->m_elements) [[unlikely]]
     throw ArgumentOutOfRangeException(
@@ -101,9 +101,8 @@ void VulkanBuffer::map(const void * const data, size_t size, UInt32 element)
   raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation,
                                reinterpret_cast<void **>(&buffer)),
                 "Unable to map buffer memory.");
-  auto result =
-    ::memcpy_s(reinterpret_cast<void *>(buffer + (element * this->alignedElementSize())),
-               this->size(), data, size);
+  auto result = ::memcpy_s(reinterpret_cast<void *>(buffer + (element * alignedElementSize())),
+                           size(), data, size_);
 
   ::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
@@ -114,10 +113,10 @@ void VulkanBuffer::map(const void * const data, size_t size, UInt32 element)
 void VulkanBuffer::map(Span<const void * const> data, size_t elementSize, UInt32 firstElement)
 {
   std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void * const mem) mutable
-                        { this->map(mem, elementSize, i++); });
+                        { map(mem, elementSize, i++); });
 }
 
-void VulkanBuffer::map(void * data, size_t size, UInt32 element, bool write)
+void VulkanBuffer::map(void * data, size_t size_, UInt32 element, bool write)
 {
   if (element >= m_impl->m_elements) [[unlikely]]
     throw ArgumentOutOfRangeException(
@@ -130,11 +129,10 @@ void VulkanBuffer::map(void * data, size_t size, UInt32 element, bool write)
                                reinterpret_cast<void **>(&buffer)),
                 "Unable to map buffer memory.");
   auto result =
-    write
-      ? ::memcpy_s(reinterpret_cast<void *>(buffer + (element * this->alignedElementSize())),
-                   this->size(), data, size)
-      : ::memcpy_s(data, size,
-                   reinterpret_cast<void *>(buffer + (element * this->alignedElementSize())), size);
+    write ? ::memcpy_s(reinterpret_cast<void *>(buffer + (element * alignedElementSize())), size(),
+                       data, size_)
+          : ::memcpy_s(data, size_,
+                       reinterpret_cast<void *>(buffer + (element * alignedElementSize())), size_);
 
   ::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
@@ -145,7 +143,7 @@ void VulkanBuffer::map(void * data, size_t size, UInt32 element, bool write)
 void VulkanBuffer::map(Span<void *> data, size_t elementSize, UInt32 firstElement, bool write)
 {
   std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void * mem) mutable
-                        { this->map(mem, elementSize, i++, write); });
+                        { map(mem, elementSize, i++, write); });
 }
 
 UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements,

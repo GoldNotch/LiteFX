@@ -545,7 +545,7 @@ public:
 private:
   SharedPtr<IPipelineLayout> parsePipelineLayout() const override
   {
-    return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+    return std::static_pointer_cast<IPipelineLayout>(reflectPipelineLayout());
   }
 
 public:
@@ -1503,7 +1503,7 @@ private:
     if (d3dQueue == nullptr) [[unlikely]]
       throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
 
-    this->waitFor(*d3dQueue, fence);
+    waitFor(*d3dQueue, fence);
   }
 };
 
@@ -1798,7 +1798,7 @@ public:
   /// <inheritdoc />
   inline const IDirectX12Image & operator[](UInt32 index) const override
   {
-    return this->image(index);
+    return image(index);
   }
 
   /// <inheritdoc />
@@ -1807,7 +1807,7 @@ public:
   /// <inheritdoc />
   inline const IDirectX12Image & operator[](const RenderTarget & renderTarget) const override
   {
-    return this->image(renderTarget);
+    return image(renderTarget);
   }
 
   /// <inheritdoc />
@@ -1816,13 +1816,13 @@ public:
   /// <inheritdoc />
   inline const IDirectX12Image & operator[](StringView renderTargetName) const override
   {
-    return this->resolveImage(hash(renderTargetName));
+    return resolveImage(hash(renderTargetName));
   }
 
   /// <inheritdoc />
   inline const IDirectX12Image & image(StringView renderTargetName) const override
   {
-    return this->resolveImage(hash(renderTargetName));
+    return resolveImage(hash(renderTargetName));
   }
 
   /// <inheritdoc />

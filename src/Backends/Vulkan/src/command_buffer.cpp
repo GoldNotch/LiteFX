@@ -35,7 +35,7 @@ public:
   {
   }
 
-  ~VulkanCommandBufferImpl() { this->release(); }
+  ~VulkanCommandBufferImpl() { release(); }
 
 public:
   void release()
@@ -207,14 +207,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue & queue, bool begin, bool primary)
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue & queue, bool begin_, bool primary)
   : m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue, primary))
   , Resource<VkCommandBuffer>(nullptr)
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 
-  if (begin)
-    this->begin();
+  if (begin_)
+    begin();
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;
@@ -228,8 +228,7 @@ void VulkanCommandBuffer::begin() const
                                      .pNext = nullptr,
                                      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
 
-  raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo),
-                "Unable to begin command recording.");
+  raiseIfFailed(::vkBeginCommandBuffer(handle(), &beginInfo), "Unable to begin command recording.");
   m_impl->m_recording = true;
 
   // If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
@@ -292,8 +291,7 @@ void VulkanCommandBuffer::begin(const VulkanRenderPass & renderPass) const
                                               VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT,
                                      .pInheritanceInfo = &inheritanceInfo};
 
-  raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo),
-                "Unable to begin command recording.");
+  raiseIfFailed(::vkBeginCommandBuffer(handle(), &beginInfo), "Unable to begin command recording.");
 
   m_impl->m_recording = true;
 }
@@ -302,7 +300,7 @@ void VulkanCommandBuffer::end() const
 {
   // End recording.
   if (m_impl->m_recording)
-    raiseIfFailed(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
+    raiseIfFailed(::vkEndCommandBuffer(handle()), "Unable to stop command recording.");
 
   m_impl->m_recording = false;
 }
@@ -324,7 +322,7 @@ void VulkanCommandBuffer::setViewports(Span<const IViewport *> viewports) const 
                }) |
              std::ranges::to<Array<VkViewport>>();
 
-  ::vkCmdSetViewportWithCount(this->handle(), static_cast<UInt32>(vps.size()), vps.data());
+  ::vkCmdSetViewportWithCount(handle(), static_cast<UInt32>(vps.size()), vps.data());
 }
 
 void VulkanCommandBuffer::setViewports(const IViewport * viewport) const noexcept
@@ -335,7 +333,7 @@ void VulkanCommandBuffer::setViewports(const IViewport * viewport) const noexcep
                        .height = viewport->getRectangle().height(),
                        .minDepth = viewport->getMinDepth(),
                        .maxDepth = viewport->getMaxDepth()};
-  ::vkCmdSetViewportWithCount(this->handle(), 1, &vp);
+  ::vkCmdSetViewportWithCount(handle(), 1, &vp);
 }
 
 void VulkanCommandBuffer::setScissors(Span<const IScissor *> scissors) const noexcept
@@ -351,7 +349,7 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor *> scissors) const noe
                }) |
              std::ranges::to<Array<VkRect2D>>();
 
-  ::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
+  ::vkCmdSetScissorWithCount(handle(), static_cast<UInt32>(scs.size()), scs.data());
 }
 
 void VulkanCommandBuffer::setScissors(const IScissor * scissor) const noexcept
@@ -360,26 +358,26 @@ void VulkanCommandBuffer::setScissors(const IScissor * scissor) const noexcept
                      .y = static_cast<Int32>(scissor->getRectangle().y())},
                     {.width = static_cast<UInt32>(scissor->getRectangle().width()),
                      .height = static_cast<UInt32>(scissor->getRectangle().height())}};
-  ::vkCmdSetScissorWithCount(this->handle(), 1, &s);
+  ::vkCmdSetScissorWithCount(handle(), 1, &s);
 }
 
 void VulkanCommandBuffer::setBlendFactors(const Vector4f & blendFactors) const noexcept
 {
-  ::vkCmdSetBlendConstants(this->handle(), blendFactors.elements());
+  ::vkCmdSetBlendConstants(handle(), blendFactors.elements());
 }
 
 void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
-  ::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
+  ::vkCmdSetStencilReference(handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
 }
 
 UInt64 VulkanCommandBuffer::submit() const
 {
-  if (this->isSecondary())
+  if (isSecondary())
     throw RuntimeException(
       "A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
 
-  return m_impl->m_queue.submit(this->shared_from_this());
+  return m_impl->m_queue.submit(shared_from_this());
 }
 
 void VulkanCommandBuffer::generateMipMaps(IVulkanImage & image) noexcept
@@ -387,7 +385,7 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage & image) noexcept
   VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);
   startBarrier.transition(image, ResourceAccess::None, ResourceAccess::TransferWrite,
                           ImageLayout::Undefined, ImageLayout::CopyDestination);
-  this->barrier(startBarrier);
+  barrier(startBarrier);
 
   for (UInt32 layer(0); layer < image.layers(); ++layer)
   {
@@ -400,7 +398,7 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage & image) noexcept
       VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
       subBarrier.transition(image, level - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite,
                             ResourceAccess::TransferRead, ImageLayout::CopySource);
-      this->barrier(subBarrier);
+      barrier(subBarrier);
 
       // Blit the image of the previous level into the current level.
       VkImageBlit blit{.srcSubresource = VkImageSubresourceLayers{.aspectMask = image.aspectMask(),
@@ -418,7 +416,7 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage & image) noexcept
       blit.dstOffsets[1] = {mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1,
                             mipDepth > 1 ? mipDepth / 2 : 1};
 
-      ::vkCmdBlitImage(this->handle(), std::as_const(image).handle(),
+      ::vkCmdBlitImage(handle(), std::as_const(image).handle(),
                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(image).handle(),
                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
 
@@ -433,13 +431,13 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage & image) noexcept
                           ResourceAccess::TransferRead, ImageLayout::CopySource);
     subBarrier.transition(image, 0, 1, layer, 1, 0, ResourceAccess::TransferWrite,
                           ResourceAccess::TransferRead, ImageLayout::CopySource);
-    this->barrier(subBarrier);
+    barrier(subBarrier);
   }
 
   VulkanBarrier endBarrier(PipelineStage::Transfer, PipelineStage::All);
   endBarrier.transition(image, ResourceAccess::TransferRead | ResourceAccess::TransferWrite,
                         ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
-  this->barrier(endBarrier);
+  barrier(endBarrier);
 }
 
 UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefore,
@@ -473,8 +471,8 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer & source, const IVulkanBu
                         .dstOffset = targetElement * target.alignedElementSize(),
                         .size = elements * source.alignedElementSize()};
 
-  ::vkCmdCopyBuffer(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(),
-                    1, &copyInfo);
+  ::vkCmdCopyBuffer(handle(), std::as_const(source).handle(), std::as_const(target).handle(), 1,
+                    &copyInfo);
 }
 
 void VulkanCommandBuffer::transfer(const void * const data, size_t size,
@@ -486,7 +484,7 @@ void VulkanCommandBuffer::transfer(const void * const data, size_t size,
                                                               target.elementSize(), elements)));
   stagingBuffer->map(data, size, 0);
 
-  this->transfer(stagingBuffer, target, 0, targetElement, elements);
+  transfer(stagingBuffer, target, 0, targetElement, elements);
 }
 
 void VulkanCommandBuffer::transfer(Span<const void * const> data, size_t elementSize,
@@ -498,7 +496,7 @@ void VulkanCommandBuffer::transfer(Span<const void * const> data, size_t element
                                                               target.elementSize(), elements)));
   stagingBuffer->map(data, elementSize, 0);
 
-  this->transfer(stagingBuffer, target, 0, firstElement, elements);
+  transfer(stagingBuffer, target, 0, firstElement, elements);
 }
 
 void VulkanCommandBuffer::transfer(const IVulkanBuffer & source, const IVulkanImage & target,
@@ -544,8 +542,8 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer & source, const IVulkanIm
                                                         target.extent().depth())}};
                         });
 
-  ::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(),
-                           std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+  ::vkCmdCopyBufferToImage(handle(), std::as_const(source).handle(), std::as_const(target).handle(),
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
@@ -557,7 +555,7 @@ void VulkanCommandBuffer::transfer(const void * const data, size_t size,
                                                               ResourceHeap::Staging, size)));
   stagingBuffer->map(data, size, 0);
 
-  this->transfer(stagingBuffer, target, 0, subresource, 1);
+  transfer(stagingBuffer, target, 0, subresource, 1);
 }
 
 void VulkanCommandBuffer::transfer(Span<const void * const> data, size_t elementSize,
@@ -570,7 +568,7 @@ void VulkanCommandBuffer::transfer(Span<const void * const> data, size_t element
                                                     elementSize, elements)));
   stagingBuffer->map(data, elementSize, 0);
 
-  this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
+  transfer(stagingBuffer, target, 0, firstSubresource, subresources);
 }
 
 void VulkanCommandBuffer::transfer(const IVulkanImage & source, const IVulkanImage & target,
@@ -621,10 +619,9 @@ void VulkanCommandBuffer::transfer(const IVulkanImage & source, const IVulkanIma
                                              static_cast<UInt32>(source.extent().depth())}};
              });
 
-  ::vkCmdCopyImage(this->handle(), std::as_const(source).handle(),
-                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(),
-                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()),
-                   copyInfos.data());
+  ::vkCmdCopyImage(handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                   std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
 void VulkanCommandBuffer::transfer(const IVulkanImage & source, const IVulkanBuffer & target,
@@ -671,7 +668,7 @@ void VulkanCommandBuffer::transfer(const IVulkanImage & source, const IVulkanBuf
                                                         source.extent().depth())}};
                         });
 
-  ::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(),
+  ::vkCmdCopyImageToBuffer(handle(), std::as_const(source).handle(),
                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(),
                            static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
@@ -680,7 +677,7 @@ void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source,
                                    const IVulkanBuffer & target, UInt32 sourceElement,
                                    UInt32 targetElement, UInt32 elements) const
 {
-  this->transfer(*source, target, sourceElement, targetElement, elements);
+  transfer(*source, target, sourceElement, targetElement, elements);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -688,7 +685,7 @@ void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source,
                                    const IVulkanImage & target, UInt32 sourceElement,
                                    UInt32 firstSubresource, UInt32 elements) const
 {
-  this->transfer(*source, target, sourceElement, firstSubresource, elements);
+  transfer(*source, target, sourceElement, firstSubresource, elements);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -696,7 +693,7 @@ void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source,
                                    const IVulkanImage & target, UInt32 sourceSubresource,
                                    UInt32 targetSubresource, UInt32 subresources) const
 {
-  this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
+  transfer(*source, target, sourceSubresource, targetSubresource, subresources);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -704,7 +701,7 @@ void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source,
                                    const IVulkanBuffer & target, UInt32 firstSubresource,
                                    UInt32 targetElement, UInt32 subresources) const
 {
-  this->transfer(*source, target, firstSubresource, targetElement, subresources);
+  transfer(*source, target, firstSubresource, targetElement, subresources);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -750,36 +747,36 @@ void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet *> descriptorSets,
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer & buffer) const noexcept
 {
   constexpr VkDeviceSize offsets[] = {0};
-  ::vkCmdBindVertexBuffers(this->handle(), buffer.layout().binding(), 1, &buffer.handle(), offsets);
+  ::vkCmdBindVertexBuffers(handle(), buffer.layout().binding(), 1, &buffer.handle(), offsets);
 }
 
 void VulkanCommandBuffer::bind(const IVulkanIndexBuffer & buffer) const noexcept
 {
-  ::vkCmdBindIndexBuffer(this->handle(), buffer.handle(), 0,
+  ::vkCmdBindIndexBuffer(handle(), buffer.handle(), 0,
                          buffer.layout().indexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16
                                                                           : VK_INDEX_TYPE_UINT32);
 }
 
 void VulkanCommandBuffer::dispatch(const Vector3u & threadCount) const noexcept
 {
-  ::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
+  ::vkCmdDispatch(handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer & batchBuffer, UInt32 batchCount,
                                            UInt64 offset) const noexcept
 {
-  ::vkCmdDispatchIndirect(this->handle(), batchBuffer.handle(), offset);
+  ::vkCmdDispatchIndirect(handle(), batchBuffer.handle(), offset);
 }
 
 void VulkanCommandBuffer::dispatchMesh(const Vector3u & threadCount) const noexcept
 {
-  ::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
+  ::vkCmdDrawMeshTasks(handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer & batchBuffer, UInt32 batchCount,
                                                UInt64 offset) const noexcept
 {
-  ::vkCmdDrawMeshTasksIndirect(this->handle(), batchBuffer.handle(), offset, batchCount,
+  ::vkCmdDrawMeshTasksIndirect(handle(), batchBuffer.handle(), offset, batchCount,
                                batchBuffer.elementSize());
 }
 
@@ -787,8 +784,8 @@ void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer & batchBuffer
                                                const IVulkanBuffer & countBuffer, UInt64 offset,
                                                UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-  ::vkCmdDrawMeshTasksIndirectCount(this->handle(), batchBuffer.handle(), offset,
-                                    countBuffer.handle(), countOffset,
+  ::vkCmdDrawMeshTasksIndirectCount(handle(), batchBuffer.handle(), offset, countBuffer.handle(),
+                                    countOffset,
                                     std::min(maxBatches,
                                              static_cast<UInt32>(batchBuffer.alignedElementSize() /
                                                                  sizeof(IndirectDispatchBatch))),
@@ -798,13 +795,13 @@ void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer & batchBuffer
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex,
                                UInt32 firstInstance) const noexcept
 {
-  ::vkCmdDraw(this->handle(), vertices, instances, firstVertex, firstInstance);
+  ::vkCmdDraw(handle(), vertices, instances, firstVertex, firstInstance);
 }
 
 void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer & batchBuffer, UInt32 batchCount,
                                        UInt64 offset) const noexcept
 {
-  ::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount,
+  ::vkCmdDrawIndirect(handle(), batchBuffer.handle(), offset, batchCount,
                       batchBuffer.elementSize());
 }
 
@@ -812,7 +809,7 @@ void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer & batchBuffer,
                                        const IVulkanBuffer & countBuffer, UInt64 offset,
                                        UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-  ::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(),
+  ::vkCmdDrawIndirectCount(handle(), batchBuffer.handle(), offset, countBuffer.handle(),
                            countOffset,
                            std::min(maxBatches,
                                     static_cast<UInt32>(batchBuffer.alignedElementSize() /
@@ -823,13 +820,13 @@ void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer & batchBuffer,
 void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex,
                                       Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
-  ::vkCmdDrawIndexed(this->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
+  ::vkCmdDrawIndexed(handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer & batchBuffer, UInt32 batchCount,
                                               UInt64 offset) const noexcept
 {
-  ::vkCmdDrawIndexedIndirect(this->handle(), batchBuffer.handle(), offset, batchCount,
+  ::vkCmdDrawIndexedIndirect(handle(), batchBuffer.handle(), offset, batchCount,
                              batchBuffer.elementSize());
 }
 
@@ -837,8 +834,8 @@ void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer & batchBuffer,
                                               const IVulkanBuffer & countBuffer, UInt64 offset,
                                               UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-  ::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset,
-                                  countBuffer.handle(), countOffset,
+  ::vkCmdDrawIndexedIndirectCount(handle(), batchBuffer.handle(), offset, countBuffer.handle(),
+                                  countOffset,
                                   std::min(maxBatches,
                                            static_cast<UInt32>(batchBuffer.alignedElementSize() /
                                                                sizeof(IndirectIndexedBatch))),
@@ -851,7 +848,7 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout & layout
   std::ranges::for_each(layout.ranges(),
                         [this, &layout, &memory](const VulkanPushConstantsRange * range)
                         {
-                          ::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(),
+                          ::vkCmdPushConstants(handle(), layout.pipelineLayout().handle(),
                                                static_cast<VkShaderStageFlags>(
                                                  Vk::getShaderStage(range->stage())),
                                                range->offset(), range->size(), memory);
@@ -863,14 +860,14 @@ void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEv
   if (timingEvent == nullptr) [[unlikely]]
     throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
-  ::vkCmdWriteTimestamp2(this->handle(), VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
+  ::vkCmdWriteTimestamp2(handle(), VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
                          m_impl->m_queue.device().swapChain().timestampQueryPool(),
                          timingEvent->queryId());
 }
 
 void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
 {
-  ::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
+  ::vkCmdExecuteCommands(handle(), 1, &commandBuffer->handle());
 }
 
 void VulkanCommandBuffer::execute(
@@ -881,7 +878,7 @@ void VulkanCommandBuffer::execute(
     std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) |
     std::ranges::to<Array<VkCommandBuffer>>();
 
-  ::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()),
+  ::vkCmdExecuteCommands(handle(), static_cast<UInt32>(secondaryHandles.size()),
                          secondaryHandles.data());
 }
 
@@ -926,7 +923,7 @@ void VulkanCommandBuffer::copyAccelerationStructure(
      .mode = compress ? VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR
                       : VK_COPY_ACCELERATION_STRUCTURE_MODE_CLONE_KHR};
 
-  ::vkCmdCopyAccelerationStructure(this->handle(), &copyInfo);
+  ::vkCmdCopyAccelerationStructure(handle(), &copyInfo);
 }
 
 void VulkanCommandBuffer::copyAccelerationStructure(
@@ -940,7 +937,7 @@ void VulkanCommandBuffer::copyAccelerationStructure(
      .mode = compress ? VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR
                       : VK_COPY_ACCELERATION_STRUCTURE_MODE_CLONE_KHR};
 
-  ::vkCmdCopyAccelerationStructure(this->handle(), &copyInfo);
+  ::vkCmdCopyAccelerationStructure(handle(), &copyInfo);
 }
 
 void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth,
@@ -980,5 +977,5 @@ void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth,
     callable.size = offsets.CallableGroupSize;
   }
 
-  ::vkCmdTraceRays(this->handle(), &raygen, &miss, &hit, &callable, width, height, depth);
+  ::vkCmdTraceRays(handle(), &raygen, &miss, &hit, &callable, width, height, depth);
 }

@@ -43,8 +43,8 @@ public:
     , m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding)
     , m_secondaryCommandBufferCount(secondaryCommandBuffers)
   {
-    this->mapRenderTargets(renderTargets);
-    this->mapInputAttachments(inputAttachments);
+    mapRenderTargets(renderTargets);
+    mapInputAttachments(inputAttachments);
 
     if (secondaryCommandBuffers == 0) [[unlikely]]
       LITEFX_WARNING(
@@ -343,7 +343,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice & device, const VulkanQueu
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice & device, const String & name,
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice & device, const String & name_,
                                    const VulkanQueue & queue, Span<RenderTarget> renderTargets,
                                    Span<RenderPassDependency> inputAttachments,
                                    Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding,
@@ -351,15 +351,15 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice & device, const String & n
   : VulkanRenderPass(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding,
                      secondaryCommandBuffers)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice & device, const String & name) noexcept
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice & device, const String & name_) noexcept
   : m_impl(makePimpl<VulkanRenderPassImpl>(this, device))
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 VulkanRenderPass::~VulkanRenderPass() noexcept = default;
@@ -506,7 +506,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer & frameBuffer) const
 
   // If the present target is multi-sampled, transition the back buffer image into resolve state.
   const auto & backBufferImage = m_impl->m_swapChain.image();
-  bool requiresResolve = this->hasPresentTarget() &&
+  bool requiresResolve = hasPresentTarget() &&
                          frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
 
   if (requiresResolve)
@@ -520,8 +520,8 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer & frameBuffer) const
   primaryCommandBuffer->barrier(renderTargetBarrier);
   primaryCommandBuffer->barrier(depthStencilBarrier);
 
-  if (!this->name().empty())
-    m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
+  if (!name().empty())
+    m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", name()));
 
   // Begin the render pass on the primary command buffer.
   ::vkCmdBeginRendering(std::as_const(*primaryCommandBuffer).handle(), &renderingInfo);
@@ -529,7 +529,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer & frameBuffer) const
                         [this](auto & commandBuffer) { commandBuffer->begin(*this); });
 
   // Publish beginning event.
-  this->beginning(this, {frameBuffer});
+  beginning(this, {frameBuffer});
 }
 
 UInt64 VulkanRenderPass::end() const
@@ -540,7 +540,7 @@ UInt64 VulkanRenderPass::end() const
       "Unable to end a render pass, that has not been begun. Start the render pass first.");
 
   // Publish ending event.
-  this->ending(this, {});
+  ending(this, {});
 
   // Get frame buffer and swap chain references.
   auto & frameBuffer = *m_impl->m_activeFrameBuffer;
@@ -562,7 +562,7 @@ UInt64 VulkanRenderPass::end() const
 
   // If the present target is multi-sampled, we need to resolve it to the back buffer.
   const auto & backBufferImage = m_impl->m_swapChain.image();
-  bool requiresResolve = this->hasPresentTarget() &&
+  bool requiresResolve = hasPresentTarget() &&
                          frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
 
   // Transition the present and depth/stencil views.
@@ -622,7 +622,7 @@ UInt64 VulkanRenderPass::end() const
                               ImageLayout::ResolveDestination, ImageLayout::Present);
     primaryCommandBuffer->barrier(presentBarrier);
   }
-  else if (this->hasPresentTarget())
+  else if (hasPresentTarget())
   {
     // Copy the contents from the frame buffer image into the swap chain back buffer.
     VulkanBarrier beginPresentBarrier(PipelineStage::None, PipelineStage::Transfer);
@@ -646,7 +646,7 @@ UInt64 VulkanRenderPass::end() const
   // Submit and store the fence.
   auto fence = m_impl->m_queue->submit(primaryCommandBuffer);
 
-  if (!this->name().empty())
+  if (!name().empty())
     m_impl->m_queue->endDebugRegion();
 
   // If one render target is a present target, we can present it on the swap chain.
@@ -682,15 +682,15 @@ VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
 
 void VulkanRenderPassBuilder::build()
 {
-  auto instance = this->instance();
+  auto && _instance = instance();
 
   if (m_state.commandQueue != nullptr)
-    instance->m_impl->m_queue = m_state.commandQueue;
+    _instance->m_impl->m_queue = m_state.commandQueue;
 
-  instance->m_impl->mapRenderTargets(m_state.renderTargets);
-  instance->m_impl->mapInputAttachments(m_state.inputAttachments);
-  instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
-  instance->m_impl->m_secondaryCommandBufferCount = m_state.commandBufferCount;
+  _instance->m_impl->mapRenderTargets(m_state.renderTargets);
+  _instance->m_impl->mapInputAttachments(m_state.inputAttachments);
+  _instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
+  _instance->m_impl->m_secondaryCommandBufferCount = m_state.commandBufferCount;
 }
 
 RenderPassDependency VulkanRenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding,

@@ -88,7 +88,7 @@ DirectX12Backend::DirectX12Backend(const App & app, bool useAdvancedSoftwareRast
   : m_impl(makePimpl<DirectX12BackendImpl>(this, app))
   , ComResource<IDXGIFactory7>(nullptr)
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
   m_impl->loadAdapters(useAdvancedSoftwareRasterizer);
 }
 
@@ -98,9 +98,9 @@ BackendType DirectX12Backend::type() const noexcept { return BackendType::Render
 
 String DirectX12Backend::name() const noexcept { return "DirectX 12"; }
 
-void DirectX12Backend::activate() { this->state() = BackendState::Active; }
+void DirectX12Backend::activate() { state() = BackendState::Active; }
 
-void DirectX12Backend::deactivate() { this->state() = BackendState::Inactive; }
+void DirectX12Backend::deactivate() { state() = BackendState::Inactive; }
 
 Enumerable<const DirectX12GraphicsAdapter *> DirectX12Backend::listAdapters() const
 {

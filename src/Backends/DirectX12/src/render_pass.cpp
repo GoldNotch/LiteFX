@@ -48,8 +48,8 @@ public:
     , m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding)
     , m_secondaryCommandBufferCount(secondaryCommandBuffers)
   {
-    this->mapRenderTargets(renderTargets);
-    this->mapInputAttachments(inputAttachments);
+    mapRenderTargets(renderTargets);
+    mapInputAttachments(inputAttachments);
 
     if (secondaryCommandBuffers == 0) [[unlikely]]
       LITEFX_WARNING(
@@ -311,22 +311,22 @@ DirectX12RenderPass::DirectX12RenderPass(
 }
 
 DirectX12RenderPass::DirectX12RenderPass(
-  const DirectX12Device & device, const String & name, const DirectX12Queue & queue,
+  const DirectX12Device & device, const String & name_, const DirectX12Queue & queue,
   Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments,
   Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers)
   : DirectX12RenderPass(device, queue, renderTargets, inputAttachments,
                         inputAttachmentSamplerBinding, secondaryCommandBuffers)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device & device,
-                                         const String & name) noexcept
+                                         const String & name_) noexcept
   : m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
@@ -474,8 +474,8 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer & frameBuffer) const
   beginCommandBuffer->barrier(depthStencilBarrier);
   beginCommandBuffer->barrier(inputAttachmentBarrier);
 
-  if (!this->name().empty())
-    m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
+  if (!name().empty())
+    m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", name()));
 
   // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
   std::as_const(*beginCommandBuffer)
@@ -500,7 +500,7 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer & frameBuffer) const
                         });
 
   // Publish beginning event.
-  this->beginning(this, {frameBuffer});
+  beginning(this, {frameBuffer});
 }
 
 UInt64 DirectX12RenderPass::end() const
@@ -511,7 +511,7 @@ UInt64 DirectX12RenderPass::end() const
       "Unable to end a render pass, that has not been begun. Start the render pass first.");
 
   // Publish ending event.
-  this->ending(this, {});
+  ending(this, {});
 
   auto & frameBuffer = *m_impl->m_activeFrameBuffer;
   const auto & swapChain = m_impl->m_device.swapChain();
@@ -532,7 +532,7 @@ UInt64 DirectX12RenderPass::end() const
 
   // If the present target is multi-sampled, we need to resolve it to the back buffer.
   const auto & backBufferImage = m_impl->m_device.swapChain().image();
-  bool requiresResolve = this->hasPresentTarget() &&
+  bool requiresResolve = hasPresentTarget() &&
                          frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
 
   // Transition the present and depth/stencil views.
@@ -601,7 +601,7 @@ UInt64 DirectX12RenderPass::end() const
                               ImageLayout::Common);
     endCommandBuffer->barrier(presentBarrier);
   }
-  else if (this->hasPresentTarget())
+  else if (hasPresentTarget())
   {
     DirectX12Barrier beginPresentBarrier(PipelineStage::None, PipelineStage::Transfer);
     beginPresentBarrier.transition(backBufferImage, ResourceAccess::None,
@@ -634,7 +634,7 @@ UInt64 DirectX12RenderPass::end() const
   auto fence = m_impl->m_queue->submit(
     commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
-  if (!this->name().empty())
+  if (!name().empty())
     m_impl->m_queue->endDebugRegion();
 
   // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
@@ -673,15 +673,15 @@ DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
 
 void DirectX12RenderPassBuilder::build()
 {
-  auto instance = this->instance();
+  auto && _instance = instance();
 
   if (m_state.commandQueue != nullptr)
-    instance->m_impl->m_queue = m_state.commandQueue;
+    _instance->m_impl->m_queue = m_state.commandQueue;
 
-  instance->m_impl->mapRenderTargets(m_state.renderTargets);
-  instance->m_impl->mapInputAttachments(m_state.inputAttachments);
-  instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
-  instance->m_impl->m_secondaryCommandBufferCount = m_state.commandBufferCount;
+  _instance->m_impl->mapRenderTargets(m_state.renderTargets);
+  _instance->m_impl->mapInputAttachments(m_state.inputAttachments);
+  _instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
+  _instance->m_impl->m_secondaryCommandBufferCount = m_state.commandBufferCount;
 }
 
 RenderPassDependency DirectX12RenderPassBuilder::makeInputAttachment(

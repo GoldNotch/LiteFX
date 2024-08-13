@@ -95,14 +95,14 @@ public:
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device & device,
                                                    SharedPtr<DirectX12PipelineLayout> layout,
                                                    SharedPtr<DirectX12ShaderProgram> shaderProgram,
-                                                   const String & name)
+                                                   const String & name_)
   : m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device, layout, shaderProgram))
   , DirectX12PipelineState(nullptr)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device & device) noexcept
@@ -125,7 +125,7 @@ SharedPtr<const DirectX12PipelineLayout> DirectX12ComputePipeline::layout() cons
 
 void DirectX12ComputePipeline::use(const DirectX12CommandBuffer & commandBuffer) const noexcept
 {
-  commandBuffer.handle()->SetPipelineState(this->handle().Get());
+  commandBuffer.handle()->SetPipelineState(handle().Get());
   commandBuffer.handle()->SetComputeRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 }
 
@@ -139,16 +139,16 @@ DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12
   : ComputePipelineBuilder(
       UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
 {
-  this->instance()->name() = name;
+  instance()->name() = name;
 }
 
 DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
 
 void DirectX12ComputePipelineBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layout = m_state.pipelineLayout;
-  instance->m_impl->m_program = m_state.shaderProgram;
-  instance->handle() = instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_layout = m_state.pipelineLayout;
+  _instance->m_impl->m_program = m_state.shaderProgram;
+  _instance->handle() = _instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

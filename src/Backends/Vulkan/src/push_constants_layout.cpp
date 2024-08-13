@@ -127,7 +127,7 @@ VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept =
 
 void VulkanPushConstantsLayoutBuilder::build()
 {
-  this->instance()->m_impl->setRanges(
+  instance()->m_impl->setRanges(
     std::move(m_state.ranges | std::views::as_rvalue |
               std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>()));
 }

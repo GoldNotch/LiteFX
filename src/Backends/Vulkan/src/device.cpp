@@ -115,7 +115,7 @@ private:
         LITEFX_WARNING(VULKAN_LOG,
                        "No queues found at priority {0}. Attempting higher priority {1}.", priority,
                        nextPriority);
-        return this->createQueue(device, nextPriority);
+        return createQueue(device, nextPriority);
       }
 
       // List the queue indices for the matched priorities and how often they are used.
@@ -174,8 +174,8 @@ public:
 
     m_extensions.assign(std::begin(extensions), std::end(extensions));
 
-    this->defineMandatoryExtensions(features);
-    this->loadQueueFamilies();
+    defineMandatoryExtensions(features);
+    loadQueueFamilies();
   }
 
   ~VulkanDeviceImpl()
@@ -540,10 +540,10 @@ public:
   void initializeDefaultQueues()
   {
     // Initialize default queues.
-    m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime,
+    m_graphicsQueue = createQueue(QueueType::Graphics, QueuePriority::Realtime,
                                         std::as_const(*m_surface).handle());
-    m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Realtime);
-    m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Realtime);
+    m_transferQueue = createQueue(QueueType::Transfer, QueuePriority::Realtime);
+    m_computeQueue = createQueue(QueueType::Compute, QueuePriority::Realtime);
 
     if (m_graphicsQueue == nullptr)
       throw RuntimeException(
@@ -626,7 +626,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend & /*backend*/, const VulkanGraphi
   LITEFX_DEBUG(VULKAN_LOG,
                "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...",
                reinterpret_cast<void *>(m_impl->m_surface.get()), adapter.deviceId(),
-               Join(this->enabledExtensions(), ", "));
+               Join(enabledExtensions(), ", "));
   LITEFX_DEBUG(VULKAN_LOG,
                "--------------------------------------------------------------------------");
   LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.vendorId());
@@ -644,7 +644,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend & /*backend*/, const VulkanGraphi
   if (extensions.size() > 0)
     LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
 
-  this->handle() = m_impl->initialize(features);
+  handle() = m_impl->initialize(features);
   m_impl->initializeDefaultQueues();
   m_impl->createFactory();
   m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
@@ -656,12 +656,12 @@ VulkanDevice::~VulkanDevice() noexcept
   m_impl.destroy();
 
   // Destroy the device.
-  ::vkDestroyDevice(this->handle(), nullptr);
+  ::vkDestroyDevice(handle(), nullptr);
 }
 
 Span<const String> VulkanDevice::enabledExtensions() const noexcept { return m_impl->m_extensions; }
 
-void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type,
+void VulkanDevice::setDebugName(UInt64 handle_, VkDebugReportObjectTypeEXT type,
                                 StringView name) const noexcept
 {
 #ifndef NDEBUG
@@ -670,12 +670,12 @@ void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type,
     VkDebugMarkerObjectNameInfoEXT nameInfo =
       {.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
        .objectType = type,
-       .object = handle,
+       .object = handle_,
        .pObjectName = name.data()};
 
-    if (m_impl->debugMarkerSetObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
+    if (m_impl->debugMarkerSetObjectName(handle(), &nameInfo) != VK_SUCCESS)
       LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.",
-                     reinterpret_cast<void *>(handle));
+                     reinterpret_cast<void *>(handle_));
   }
 #endif
 }
@@ -718,7 +718,7 @@ VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String & n
 VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(
   ShaderRecordCollection && shaderRecords) const
 {
-  return this->buildRayTracingPipeline("", std::move(shaderRecords));
+  return buildRayTracingPipeline("", std::move(shaderRecords));
 }
 
 VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(
@@ -818,12 +818,12 @@ MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const 
 
 double VulkanDevice::ticksPerMillisecond() const noexcept
 {
-  return 1000000.0 / static_cast<double>(this->adapter().limits().timestampPeriod);
+  return 1000000.0 / static_cast<double>(adapter().limits().timestampPeriod);
 }
 
 void VulkanDevice::wait() const
 {
-  raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
+  raiseIfFailed(::vkDeviceWaitIdle(handle()), "Unable to wait for the device.");
 }
 
 void VulkanDevice::computeAccelerationStructureSizes(
@@ -847,8 +847,8 @@ void VulkanDevice::computeAccelerationStructureSizes(
      .pGeometries = descriptions.data()};
 
   // Get the pre-build info and align the buffer sizes.
-  const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
-  ::vkGetAccelerationStructureBuildSizes(this->handle(),
+  const auto alignment = adapter().limits().minUniformBufferOffsetAlignment;
+  ::vkGetAccelerationStructureBuildSizes(handle(),
                                          VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs,
                                          sizes.data(), &prebuildInfo);
   bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
@@ -888,8 +888,8 @@ void VulkanDevice::computeAccelerationStructureSizes(
      .pGeometries = &geometryInfo};
 
   // Get the pre-build info and align the buffer sizes.
-  const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
-  ::vkGetAccelerationStructureBuildSizes(this->handle(),
+  const auto alignment = adapter().limits().minUniformBufferOffsetAlignment;
+  ::vkGetAccelerationStructureBuildSizes(handle(),
                                          VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs,
                                          &instanceCount, &prebuildInfo);
   bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);

@@ -58,7 +58,7 @@ public:
       throw InvalidArgumentException(
         "format",
         "The provided surface format {0} it not a supported. Must be one of the following: {1}.",
-        format, this->joinSupportedSurfaceFormats());
+        format, joinSupportedSurfaceFormats());
 
     auto adapter = m_device.adapter().handle();
     auto surface = m_device.surface().handle();
@@ -134,7 +134,7 @@ public:
       throw InvalidArgumentException(
         "format",
         "The provided surface format {0} it not a supported. Must be one of the following: {1}.",
-        format, this->joinSupportedSurfaceFormats());
+        format, joinSupportedSurfaceFormats());
 
     // Release all back buffers.
     m_presentImages.clear();
@@ -186,7 +186,7 @@ public:
 
     // Initialize the query pools.
     if (m_timingQueryHeaps.size() != buffers)
-      this->resetQueryHeaps(m_timingEvents);
+      resetQueryHeaps(m_timingEvents);
   }
 
   void resetQueryHeaps(const Array<SharedPtr<TimingEvent>> & timingEvents)
@@ -271,7 +271,7 @@ DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device & device, Format fo
   : m_impl(makePimpl<DirectX12SwapChainImpl>(this, device))
   , ComResource<IDXGISwapChain4>(nullptr)
 {
-  this->handle() = m_impl->initialize(format, renderArea, backBuffers, enableVsync);
+  handle() = m_impl->initialize(format, renderArea, backBuffers, enableVsync);
 }
 
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
@@ -366,9 +366,9 @@ void DirectX12SwapChain::present(UInt64 fence) const
   m_impl->m_presentFences[m_impl->m_currentImage] = fence;
 
   if (m_impl->m_vsync)
-    raiseIfFailed(this->handle()->Present(1, 0), "Unable to present swap chain");
+    raiseIfFailed(handle()->Present(1, 0), "Unable to present swap chain");
   else
-    raiseIfFailed(this->handle()->Present(0, this->supportsVariableRefreshRate()
+    raiseIfFailed(handle()->Present(0, supportsVariableRefreshRate()
                                                ? DXGI_PRESENT_ALLOW_TEARING
                                                : 0),
                   "Unable to present swap chain");
@@ -401,7 +401,7 @@ void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d & renderArea, 
                                bool enableVsync)
 {
   m_impl->reset(surfaceFormat, renderArea, buffers, enableVsync);
-  this->reseted(this, {surfaceFormat, renderArea, buffers, enableVsync});
+  reseted(this, {surfaceFormat, renderArea, buffers, enableVsync});
 }
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const { return m_impl->swapBackBuffer(); }

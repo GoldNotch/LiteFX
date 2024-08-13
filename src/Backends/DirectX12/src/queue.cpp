@@ -89,11 +89,11 @@ public:
                                if (std::get<0>(pair) > beforeFence)
                                  return false;
 
-                               this->m_parent->releaseSharedState(*std::get<1>(pair));
+                               m_parent->releaseSharedState(*std::get<1>(pair));
                                return true;
                              });
 
-    this->m_submittedCommandBuffers.erase(from, to);
+    m_submittedCommandBuffers.erase(from, to);
   }
 };
 
@@ -106,7 +106,7 @@ DirectX12Queue::DirectX12Queue(const DirectX12Device & device, QueueType type,
   : ComResource<ID3D12CommandQueue>(nullptr)
   , m_impl(makePimpl<DirectX12QueueImpl>(this, device, type, priority))
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 DirectX12Queue::~DirectX12Queue() noexcept = default;
@@ -119,15 +119,15 @@ QueueType DirectX12Queue::type() const noexcept { return m_impl->m_type; }
 void DirectX12Queue::beginDebugRegion(const String & label,
                                       const Vectors::ByteVector3 & color) const noexcept
 {
-  ::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
+  ::PIXBeginEvent(handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
 
-void DirectX12Queue::endDebugRegion() const noexcept { ::PIXEndEvent(this->handle().Get()); }
+void DirectX12Queue::endDebugRegion() const noexcept { ::PIXEndEvent(handle().Get()); }
 
 void DirectX12Queue::setDebugMarker(const String & label,
                                     const Vectors::ByteVector3 & color) const noexcept
 {
-  ::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
+  ::PIXSetMarker(handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
@@ -151,7 +151,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
   std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
   // Begin event.
-  this->submitting(this, {{std::static_pointer_cast<const ICommandBuffer>(commandBuffer)}});
+  submitting(this, {{std::static_pointer_cast<const ICommandBuffer>(commandBuffer)}});
 
   // Remove all previously submitted command buffers, that have already finished.
   auto completedValue = m_impl->m_fence->GetCompletedValue();
@@ -162,18 +162,18 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 
   // Submit the command buffer.
   Array<ID3D12CommandList *> commandBuffers{commandBuffer->handle().Get()};
-  this->handle()->ExecuteCommandLists(1, commandBuffers.data());
+  handle()->ExecuteCommandLists(1, commandBuffers.data());
 
   // Insert a fence and return the value.
   auto fence = ++m_impl->m_fenceValue;
-  raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence),
+  raiseIfFailed(handle()->Signal(m_impl->m_fence.Get(), fence),
                 "Unable to add fence signal to command buffer.");
 
   // Add the command buffer to the submitted command buffers list.
   m_impl->m_submittedCommandBuffers.push_back({fence, commandBuffer});
 
   // Fire end event.
-  this->submitted(this, {fence});
+  submitted(this, {fence});
   return fence;
 }
 
@@ -198,7 +198,7 @@ UInt64 DirectX12Queue::submit(
     std::views::transform([](auto & buffer)
                           { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
     std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
-  this->submitting(this, {buffers});
+  submitting(this, {buffers});
 
   // Remove all previously submitted command buffers, that have already finished.
   auto completedValue = m_impl->m_fence->GetCompletedValue();
@@ -214,11 +214,11 @@ UInt64 DirectX12Queue::submit(
     }
   }() | std::ranges::to<Array<ID3D12CommandList *>>();
 
-  this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
+  handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 
   // Insert a fence and return the value.
   auto fence = ++m_impl->m_fenceValue;
-  raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence),
+  raiseIfFailed(handle()->Signal(m_impl->m_fence.Get(), fence),
                 "Unable to add fence signal to command buffer.");
 
   // Add the command buffers to the submitted command buffers list.
@@ -228,7 +228,7 @@ UInt64 DirectX12Queue::submit(
                         });
 
   // Fire end event.
-  this->submitted(this, {fence});
+  submitted(this, {fence});
   return fence;
 }
 
@@ -253,7 +253,7 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 
 void DirectX12Queue::waitFor(const DirectX12Queue & queue, UInt64 fence) const noexcept
 {
-  this->handle()->Wait(queue.m_impl->m_fence.Get(), fence);
+  handle()->Wait(queue.m_impl->m_fence.Get(), fence);
 }
 
 UInt64 DirectX12Queue::currentFence() const noexcept { return m_impl->m_fenceValue; }

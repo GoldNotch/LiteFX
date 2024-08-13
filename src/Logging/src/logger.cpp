@@ -38,7 +38,7 @@ const String & Log::getName() const noexcept { return m_impl->m_name; }
 
 void Log::log(LogLevel level, StringView message)
 {
-  auto logger = spdlog::get(this->getName());
+  auto logger = spdlog::get(getName());
   assert(logger != nullptr);
 
   switch (level)

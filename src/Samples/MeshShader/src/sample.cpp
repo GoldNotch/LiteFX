@@ -96,7 +96,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*commandBuffer, *cameraBuffer);
+    updateCamera(*commandBuffer, *cameraBuffer);
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
@@ -135,9 +135,9 @@ void SampleApp::onStartup()
     // Run application loop until the window is closed.
     while (!::glfwWindowShouldClose(m_window.get()))
     {
-        this->handleEvents();
-        this->drawFrame();
-        this->updateWindowTitle();
+        handleEvents();
+        drawFrame();
+        updateWindowTitle();
     }
 }
 
@@ -187,7 +187,7 @@ void SampleApp::onInit()
 
         // Initialize resources.
         ::initRenderGraph(backend);
-        this->initBuffers(backend);
+        initBuffers(backend);
 
         return true;
     };
@@ -198,8 +198,8 @@ void SampleApp::onInit()
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
-    this->onBackendStart<VulkanBackend>(startCallback);
-    this->onBackendStop<VulkanBackend>(stopCallback);
+    onBackendStart<VulkanBackend>(startCallback);
+    onBackendStop<VulkanBackend>(stopCallback);
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
@@ -207,8 +207,8 @@ void SampleApp::onInit()
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
-    this->onBackendStart<DirectX12Backend>(startCallback);
-    this->onBackendStop<DirectX12Backend>(stopCallback);
+    onBackendStart<DirectX12Backend>(startCallback);
+    onBackendStop<DirectX12Backend>(stopCallback);
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
@@ -235,7 +235,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
-    this->updateCamera(*commandBuffer, cameraBuffer);
+    updateCamera(*commandBuffer, cameraBuffer);
     m_transferFence = commandBuffer->submit();
 }
 
@@ -243,12 +243,12 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
-        this->startBackend<VulkanBackend>();
+        startBackend<VulkanBackend>();
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
-        this->startBackend<DirectX12Backend>();
+        startBackend<DirectX12Backend>();
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
@@ -326,7 +326,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
+    title << name() << " | " << "Backend: " << activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();

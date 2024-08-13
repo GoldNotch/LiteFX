@@ -93,7 +93,7 @@ public:
 
     // Setup the pipeline.
     m_samples = samples;
-    auto pipeline = this->initializeGraphicsPipeline(dynamicState, shaderStages);
+    auto pipeline = initializeGraphicsPipeline(dynamicState, shaderStages);
 
 #ifndef NDEBUG
     m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64 *>(&pipeline),
@@ -403,7 +403,7 @@ public:
     }
 
     // Allocate the input attachment bindings.
-    this->allocateInputAttachmentBindings(descriptorsPerSet | std::views::keys, frameBuffer);
+    allocateInputAttachmentBindings(descriptorsPerSet | std::views::keys, frameBuffer);
   }
 
   void allocateInputAttachmentBindings(const std::ranges::input_range auto & descriptorSets,
@@ -484,8 +484,8 @@ public:
     if (!m_inputAttachmentBindings.contains(interfacePointer))
     {
       // Allocate and update input attachment bindings.
-      this->initializeInputAttachmentBindings(frameBuffer);
-      this->updateInputAttachmentBindings(frameBuffer);
+      initializeInputAttachmentBindings(frameBuffer);
+      updateInputAttachmentBindings(frameBuffer);
     }
 
     // Bind the input attachment sets.
@@ -501,7 +501,7 @@ public:
     // Update the descriptors in the descriptor sets.
     // NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
     auto frameBuffer = reinterpret_cast<const VulkanFrameBuffer *>(sender);
-    this->updateInputAttachmentBindings(*frameBuffer);
+    updateInputAttachmentBindings(*frameBuffer);
   }
 
   void onFrameBufferRelease(const void * sender, IFrameBuffer::ReleasedEventArgs args)
@@ -528,29 +528,29 @@ VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass & renderPass,
                                            SharedPtr<VulkanInputAssembler> inputAssembler,
                                            SharedPtr<VulkanRasterizer> rasterizer,
                                            MultiSamplingLevel samples, bool enableAlphaToCoverage,
-                                           const String & name)
+                                           const String & name_)
   : m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout,
                                                shaderProgram, inputAssembler, rasterizer))
   , VulkanPipelineState(VK_NULL_HANDLE)
 {
-  this->handle() = m_impl->initialize(samples);
+  handle() = m_impl->initialize(samples);
 
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass & renderPass,
-                                           const String & name) noexcept
+                                           const String & name_) noexcept
   : m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass))
   , VulkanPipelineState(VK_NULL_HANDLE)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-  ::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
+  ::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
@@ -583,15 +583,15 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
   m_impl->m_inputAttachmentBindings.clear();
 
   // Release current pipeline state.
-  ::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
+  ::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), handle(), nullptr);
 
   // Rebuild the pipeline.
-  this->handle() = m_impl->initialize(samples);
+  handle() = m_impl->initialize(samples);
 }
 
 void VulkanRenderPipeline::use(const VulkanCommandBuffer & commandBuffer) const noexcept
 {
-  ::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
+  ::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, handle());
 
   // Set the line width (in case it has been changed). Currently we do not expose an command buffer interface for this, since this is mostly unsupported anyway and has no D3D12 counter-part.
   ::vkCmdSetLineWidth(commandBuffer.handle(), std::as_const(*m_impl->m_rasterizer).lineWidth());
@@ -658,19 +658,19 @@ VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass 
                                                          const String & name)
   : RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
-  this->instance()->name() = name;
+  instance()->name() = name;
 }
 
 VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 
 void VulkanRenderPipelineBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layout = m_state.pipelineLayout;
-  instance->m_impl->m_program = m_state.shaderProgram;
-  instance->m_impl->m_inputAssembler = m_state.inputAssembler;
-  instance->m_impl->m_rasterizer = m_state.rasterizer;
-  instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-  instance->handle() = instance->m_impl->initialize(m_state.samples);
+  auto && _instance = instance();
+  _instance->m_impl->m_layout = m_state.pipelineLayout;
+  _instance->m_impl->m_program = m_state.shaderProgram;
+  _instance->m_impl->m_inputAssembler = m_state.inputAssembler;
+  _instance->m_impl->m_rasterizer = m_state.rasterizer;
+  _instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
+  _instance->handle() = _instance->m_impl->initialize(m_state.samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

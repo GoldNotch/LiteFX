@@ -38,7 +38,7 @@ public:
   {
   }
 
-  ~VulkanQueueImpl() { this->release(); }
+  ~VulkanQueueImpl() { release(); }
 
 public:
   void release()
@@ -84,11 +84,11 @@ public:
                                if (std::get<0>(pair) > beforeFence)
                                  return false;
 
-                               this->m_parent->releaseSharedState(*std::get<1>(pair));
+                               m_parent->releaseSharedState(*std::get<1>(pair));
                                return true;
                              });
 
-    this->m_submittedCommandBuffers.erase(from, to);
+    m_submittedCommandBuffers.erase(from, to);
   }
 };
 
@@ -101,7 +101,7 @@ VulkanQueue::VulkanQueue(const VulkanDevice & device, QueueType type, QueuePrior
   : Resource<VkQueue>(nullptr)
   , m_impl(makePimpl<VulkanQueueImpl>(this, device, type, priority, familyId, queueId))
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 VulkanQueue::~VulkanQueue() noexcept = default;
@@ -128,10 +128,10 @@ void VulkanQueue::beginDebugRegion(const String & label,
                                  .color = {color.x() / 255.0f, color.y() / 255.0f,
                                            color.z() / 255.0f, 1.0f}};
 
-  ::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
+  ::vkQueueBeginDebugUtilsLabel(handle(), &labelInfo);
 }
 
-void VulkanQueue::endDebugRegion() const noexcept { ::vkQueueEndDebugUtilsLabel(this->handle()); }
+void VulkanQueue::endDebugRegion() const noexcept { ::vkQueueEndDebugUtilsLabel(handle()); }
 
 void VulkanQueue::setDebugMarker(const String & label,
                                  const Vectors::ByteVector3 & color) const noexcept
@@ -141,7 +141,7 @@ void VulkanQueue::setDebugMarker(const String & label,
                                  .color = {color.x() / 255.0f, color.y() / 255.0f,
                                            color.z() / 255.0f, 1.0f}};
 
-  ::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);
+  ::vkQueueInsertDebugUtilsLabel(handle(), &labelInfo);
 }
 #endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
@@ -165,7 +165,7 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
   std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
   // Begin event.
-  this->submitting(this, {{std::static_pointer_cast<const ICommandBuffer>(commandBuffer)}});
+  submitting(this, {{std::static_pointer_cast<const ICommandBuffer>(commandBuffer)}});
 
   // Remove all previously submitted command buffers, that have already finished.
   UInt64 completedValue = 0;
@@ -195,14 +195,14 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
                               .pSignalSemaphoreInfos = &signalSemaphoreInfo};
 
   // Submit the command buffer to the transfer queue.
-  raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE),
+  raiseIfFailed(::vkQueueSubmit2(handle(), 1, &submitInfo, VK_NULL_HANDLE),
                 "Unable to submit command buffer to queue.");
 
   // Add the command buffer to the submitted command buffers list.
   m_impl->m_submittedCommandBuffers.push_back({fence, commandBuffer});
 
   // Fire end event.
-  this->submitted(this, {fence});
+  submitted(this, {fence});
   return fence;
 }
 
@@ -227,7 +227,7 @@ UInt64 VulkanQueue::submit(
     commandBuffers |
     std::views::transform([](auto & buffer)
                           { return std::static_pointer_cast<const ICommandBuffer>(buffer); });
-  this->submitting(this, {buffers});
+  submitting(this, {buffers});
 
   // Remove all previously submitted command buffers, that have already finished.
   UInt64 completedValue = 0;
@@ -263,7 +263,7 @@ UInt64 VulkanQueue::submit(
                               .pSignalSemaphoreInfos = &signalSemaphoreInfo};
 
   // Submit the command buffer to the transfer queue.
-  raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE),
+  raiseIfFailed(::vkQueueSubmit2(handle(), 1, &submitInfo, VK_NULL_HANDLE),
                 "Unable to submit command buffer to queue.");
 
   // Add the command buffers to the submitted command buffers list.
@@ -273,7 +273,7 @@ UInt64 VulkanQueue::submit(
                         });
 
   // Fire end event.
-  this->submitted(this, {fence});
+  submitted(this, {fence});
   return fence;
 }
 
@@ -309,7 +309,7 @@ void VulkanQueue::waitFor(const VulkanQueue & queue, UInt64 fence) const noexcep
                            .waitSemaphoreInfoCount = 1,
                            .pWaitSemaphoreInfos = &waitSemaphoreInfo};
 
-  ::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE);
+  ::vkQueueSubmit2(handle(), 1, &submitInfo, VK_NULL_HANDLE);
 }
 
 UInt64 VulkanQueue::currentFence() const noexcept { return m_impl->m_fenceValue; }

@@ -85,8 +85,8 @@ VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(
 
 VulkanTopLevelAccelerationStructure::~VulkanTopLevelAccelerationStructure() noexcept
 {
-  if (this->handle() != VK_NULL_HANDLE)
-    ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), this->handle(), nullptr);
+  if (handle() != VK_NULL_HANDLE)
+    ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), handle(), nullptr);
 
   if (m_impl->m_queryPool != VK_NULL_HANDLE)
     ::vkDestroyQueryPool(m_impl->m_device->handle(), m_impl->m_queryPool, nullptr);
@@ -190,8 +190,8 @@ void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer & comm
                         ResourceAccess::AccelerationStructureRead);
     commandBuffer.barrier(*barrier);
     ::vkCmdWriteAccelerationStructuresProperties(
-      commandBuffer.handle(), 1, &this->handle(),
-      VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR, m_impl->m_queryPool, 0);
+      commandBuffer.handle(), 1, &handle(), VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR,
+      m_impl->m_queryPool, 0);
   }
 }
 
@@ -261,8 +261,8 @@ void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer & com
                         ResourceAccess::AccelerationStructureRead);
     commandBuffer.barrier(*barrier);
     ::vkCmdWriteAccelerationStructuresProperties(
-      commandBuffer.handle(), 1, &this->handle(),
-      VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR, m_impl->m_queryPool, 0);
+      commandBuffer.handle(), 1, &handle(), VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR,
+      m_impl->m_queryPool, 0);
   }
 }
 
@@ -403,13 +403,13 @@ Array<VkAccelerationStructureInstanceKHR> VulkanTopLevelAccelerationStructure::b
 }
 
 void VulkanTopLevelAccelerationStructure::updateState(const VulkanDevice * device,
-                                                      VkAccelerationStructureKHR handle) noexcept
+                                                      VkAccelerationStructureKHR handle_) noexcept
 {
-  if (this->handle() != VK_NULL_HANDLE)
-    ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), handle, nullptr);
+  if (handle() != VK_NULL_HANDLE)
+    ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), handle_, nullptr);
 
   m_impl->m_device = device;
-  this->handle() = handle;
+  handle() = handle_;
 }
 
 SharedPtr<const IBuffer> VulkanTopLevelAccelerationStructure::getBuffer() const noexcept
@@ -422,9 +422,9 @@ void VulkanTopLevelAccelerationStructure::doBuild(const ICommandBuffer & command
                                                   SharedPtr<const IBuffer> buffer, UInt64 offset,
                                                   UInt64 maxSize)
 {
-  this->build(dynamic_cast<const VulkanCommandBuffer &>(commandBuffer),
-              std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer),
-              std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
+  build(dynamic_cast<const VulkanCommandBuffer &>(commandBuffer),
+        std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer),
+        std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
 }
 
 void VulkanTopLevelAccelerationStructure::doUpdate(const ICommandBuffer & commandBuffer,
@@ -432,9 +432,9 @@ void VulkanTopLevelAccelerationStructure::doUpdate(const ICommandBuffer & comman
                                                    SharedPtr<const IBuffer> buffer, UInt64 offset,
                                                    UInt64 maxSize)
 {
-  this->update(dynamic_cast<const VulkanCommandBuffer &>(commandBuffer),
-               std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer),
-               std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
+  update(dynamic_cast<const VulkanCommandBuffer &>(commandBuffer),
+         std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer),
+         std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
 }
 
 void VulkanTopLevelAccelerationStructure::doCopy(const ICommandBuffer & commandBuffer,
@@ -442,7 +442,7 @@ void VulkanTopLevelAccelerationStructure::doCopy(const ICommandBuffer & commandB
                                                  bool compress, SharedPtr<const IBuffer> buffer,
                                                  UInt64 offset, bool copyBuildInfo) const
 {
-  this->copy(dynamic_cast<const VulkanCommandBuffer &>(commandBuffer),
-             dynamic_cast<VulkanTopLevelAccelerationStructure &>(destination), compress,
-             std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, copyBuildInfo);
+  copy(dynamic_cast<const VulkanCommandBuffer &>(commandBuffer),
+       dynamic_cast<VulkanTopLevelAccelerationStructure &>(destination), compress,
+       std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, copyBuildInfo);
 }

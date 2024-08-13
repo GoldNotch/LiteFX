@@ -354,7 +354,7 @@ DirectX12PipelineLayout::DirectX12PipelineLayout(
   , m_impl(makePimpl<DirectX12PipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts),
                                                   std::move(pushConstantsLayout)))
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device & device) noexcept
@@ -434,10 +434,10 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 
 void DirectX12PipelineLayoutBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
-  instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
-  instance->handle() = instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
+  _instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
+  _instance->handle() = _instance->m_impl->initialize();
 }
 
 DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(

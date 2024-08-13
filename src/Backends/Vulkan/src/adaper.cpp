@@ -128,7 +128,7 @@ UInt64 VulkanGraphicsAdapter::dedicatedMemory() const noexcept
 
 bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensions) const noexcept
 {
-  auto availableExtensions = this->getAvailableDeviceExtensions();
+  auto availableExtensions = getAvailableDeviceExtensions();
 
   return std::ranges::all_of(extensions,
                              [&availableExtensions](const auto & extension)
@@ -163,7 +163,7 @@ Enumerable<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const n
 
 bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
 {
-  auto availableLayers = this->deviceValidationLayers();
+  auto availableLayers = deviceValidationLayers();
 
   return std::ranges::
     all_of(layers,

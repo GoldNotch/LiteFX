@@ -137,14 +137,14 @@ public:
   template<typename... TArgs>
   inline void log(LogLevel level, std::format_string<TArgs...> format, TArgs &&... args)
   {
-    this->log(level, std::format(format, std::forward<TArgs>(args)...));
+    log(level, std::format(format, std::forward<TArgs>(args)...));
   }
 
   template<typename... TArgs>
   inline void trace(std::format_string<TArgs...> format, TArgs &&... args)
   {
 #ifndef NDEBUG
-    this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
+    log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
 #endif
   }
 
@@ -152,32 +152,32 @@ public:
   inline void debug(std::format_string<TArgs...> format, TArgs &&... args)
   {
 #ifndef NDEBUG
-    this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
+    log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
 #endif
   }
 
   template<typename... TArgs>
   inline void info(std::format_string<TArgs...> format, TArgs &&... args)
   {
-    this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
+    log(LogLevel::Info, format, std::forward<TArgs>(args)...);
   }
 
   template<typename... TArgs>
   inline void warning(std::format_string<TArgs...> format, TArgs &&... args)
   {
-    this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
+    log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
   }
 
   template<typename... TArgs>
   inline void error(std::format_string<TArgs...> format, TArgs &&... args)
   {
-    this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
+    log(LogLevel::Error, format, std::forward<TArgs>(args)...);
   }
 
   template<typename... TArgs>
   inline void fatal(std::format_string<TArgs...> format, TArgs &&... args)
   {
-    this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
+    log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
   }
 };
 

@@ -57,7 +57,7 @@ public:
                             { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
 
     // Clean up the rest.
-    this->cleanup();
+    cleanup();
   }
 
 public:
@@ -70,7 +70,7 @@ public:
     auto surface = m_device.surface().handle();
 
     // Query the swap chain surface format.
-    auto surfaceFormats = this->getSurfaceFormats(adapter, surface);
+    auto surfaceFormats = getSurfaceFormats(adapter, surface);
     Format selectedFormat{Format::None};
 
     if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat)
@@ -95,7 +95,7 @@ public:
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.imageFormat = Vk::getFormat(selectedFormat);
-    createInfo.imageColorSpace = this->findColorSpace(adapter, surface, selectedFormat);
+    createInfo.imageColorSpace = findColorSpace(adapter, surface, selectedFormat);
     createInfo.queueFamilyIndexCount = 0;
     createInfo.pQueueFamilyIndices = nullptr;
     createInfo.preTransform = deviceCaps.currentTransform;
@@ -190,7 +190,7 @@ public:
 
     // Initialize the query pools.
     if (m_timingQueryPools.size() != images)
-      this->resetQueryPools(m_timingEvents);
+      resetQueryPools(m_timingEvents);
   }
 
   void resetQueryPools(const Array<SharedPtr<TimingEvent>> & timingEvents)
@@ -231,8 +231,8 @@ public:
   void reset(Format format, Size2d renderArea, UInt32 buffers, bool vsync)
   {
     // Cleanup and re-initialize.
-    this->cleanup();
-    this->initialize(format, renderArea, buffers, vsync);
+    cleanup();
+    initialize(format, renderArea, buffers, vsync);
   }
 
   void cleanup()
@@ -477,7 +477,7 @@ public:
       std::ranges::for_each(m_timingQueryPools, [this](auto & pool)
                             { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
 
-    this->cleanup();
+    cleanup();
   }
 
 public:
@@ -488,7 +488,7 @@ public:
 
     // Query the swap chain surface format.
     auto surfaceFormats =
-      this->getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
+      getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
     Format selectedFormat{Format::None};
 
     if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat)
@@ -636,7 +636,7 @@ public:
                        "The interop swap chain does not implement the IDXGISwapChain4 interface.");
 
     // Initialize swap chain images.
-    this->createImages(selectedFormat, extent, images);
+    createImages(selectedFormat, extent, images);
 
     // Disable Alt+Enter shortcut for fullscreen-toggle.
     if (FAILED(factory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER))) [[unlikely]]
@@ -698,7 +698,7 @@ public:
 
     // Query the swap chain surface format.
     auto surfaceFormats =
-      this->getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
+      getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
     Format selectedFormat{Format::None};
 
     if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat)
@@ -745,7 +745,7 @@ public:
       selectedFormat, vsync);
 
     // Wait for both devices to be idle.
-    this->waitForInteropDevice();
+    waitForInteropDevice();
     m_presentImages.clear();
     m_imageResources.clear();
     D3D::raiseIfFailed(m_swapChain->ResizeBuffers(buffers, static_cast<UInt32>(extent.width()),
@@ -757,11 +757,11 @@ public:
                        "Unable to resize interop swap chain back buffers.");
 
     // Initialize swap chain images.
-    this->createImages(selectedFormat, extent, images);
+    createImages(selectedFormat, extent, images);
 
     // Initialize the query pools.
     if (m_timingQueryPools.size() != images)
-      this->resetQueryPools(m_timingEvents);
+      resetQueryPools(m_timingEvents);
 
     // Reset the present fences array.
     m_presentFences.resize(images, 0ul);
@@ -960,7 +960,7 @@ public:
                           });
 
     // Destroy the swap chain and interop device and resources.
-    this->waitForInteropDevice();
+    waitForInteropDevice();
     m_imageResources.clear();
     m_presentImages.clear();
     m_swapChain.Reset();
@@ -1281,12 +1281,12 @@ void VulkanSwapChain::reset(Format surfaceFormat, const Size2d & renderArea, UIn
                             bool enableVsync)
 {
   m_impl->reset(surfaceFormat, renderArea, buffers, enableVsync);
-  this->reseted(this, {surfaceFormat, renderArea, buffers, enableVsync});
+  reseted(this, {surfaceFormat, renderArea, buffers, enableVsync});
 }
 
 UInt32 VulkanSwapChain::swapBackBuffer() const
 {
   auto backBuffer = m_impl->swapBackBuffer();
-  this->swapped(this, {});
+  swapped(this, {});
   return backBuffer;
 }

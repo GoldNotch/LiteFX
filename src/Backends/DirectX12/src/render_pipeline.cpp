@@ -271,13 +271,12 @@ public:
 
     // Initialize the remainder depending on the pipeline type.
     if (hasMeshShaders)
-      return this->initializeMeshPipeline(blendState, rasterizerState, depthStencilState,
-                                          topologyType, renderTargets, rtvFormats, dsvFormat,
-                                          multisamplingState);
+      return initializeMeshPipeline(blendState, rasterizerState, depthStencilState, topologyType,
+                                    renderTargets, rtvFormats, dsvFormat, multisamplingState);
     else
-      return this->initializeGraphicsPipeline(blendState, rasterizerState, depthStencilState,
-                                              inputLayout, topologyType, renderTargets, rtvFormats,
-                                              dsvFormat, multisamplingState);
+      return initializeGraphicsPipeline(blendState, rasterizerState, depthStencilState, inputLayout,
+                                        topologyType, renderTargets, rtvFormats, dsvFormat,
+                                        multisamplingState);
   }
 
   ComPtr<ID3D12PipelineState> initializeMeshPipeline(
@@ -508,7 +507,7 @@ public:
     }
 
     // Allocate the input attachment bindings.
-    this->allocateInputAttachmentBindings(frameBuffer, descriptorsPerSet | std::views::keys);
+    allocateInputAttachmentBindings(frameBuffer, descriptorsPerSet | std::views::keys);
   }
 
   void allocateInputAttachmentBindings(const DirectX12FrameBuffer & frameBuffer,
@@ -589,8 +588,8 @@ public:
     if (!m_inputAttachmentBindings.contains(interfacePointer))
     {
       // Allocate and update input attachment bindings.
-      this->initializeInputAttachmentBindings(frameBuffer);
-      this->updateInputAttachmentBindings(frameBuffer);
+      initializeInputAttachmentBindings(frameBuffer);
+      updateInputAttachmentBindings(frameBuffer);
     }
 
     // Bind the input attachment sets.
@@ -603,7 +602,7 @@ public:
     // Update the descriptors in the descriptor sets.
     // NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
     auto frameBuffer = reinterpret_cast<const DirectX12FrameBuffer *>(sender);
-    this->updateInputAttachmentBindings(*frameBuffer);
+    updateInputAttachmentBindings(*frameBuffer);
   }
 
   void onFrameBufferRelease(const void * sender, IFrameBuffer::ReleasedEventArgs args)
@@ -630,24 +629,24 @@ DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass & ren
                                                  SharedPtr<DirectX12InputAssembler> inputAssembler,
                                                  SharedPtr<DirectX12Rasterizer> rasterizer,
                                                  MultiSamplingLevel samples,
-                                                 bool enableAlphaToCoverage, const String & name)
+                                                 bool enableAlphaToCoverage, const String & name_)
   : m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout,
                                                   shaderProgram, inputAssembler, rasterizer))
   , DirectX12PipelineState(nullptr)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 
-  this->handle() = m_impl->initialize(samples);
+  handle() = m_impl->initialize(samples);
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass & renderPass,
-                                                 const String & name) noexcept
+                                                 const String & name_) noexcept
   : m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass))
   , DirectX12PipelineState(nullptr)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept = default;
@@ -682,16 +681,16 @@ void DirectX12RenderPipeline::updateSamples(MultiSamplingLevel samples)
   m_impl->m_inputAttachmentBindings.clear();
 
   // Release current pipeline state.
-  this->handle().Reset();
+  handle().Reset();
 
   // Rebuild the pipeline.
-  this->handle() = m_impl->initialize(samples);
+  handle() = m_impl->initialize(samples);
 }
 
 void DirectX12RenderPipeline::use(const DirectX12CommandBuffer & commandBuffer) const noexcept
 {
   // Set the pipeline state.
-  commandBuffer.handle()->SetPipelineState(this->handle().Get());
+  commandBuffer.handle()->SetPipelineState(handle().Get());
   commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
   commandBuffer.handle()->IASetPrimitiveTopology(
     DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
@@ -714,19 +713,19 @@ DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(
   : RenderPipelineBuilder(
       UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
-  this->instance()->name() = name;
+  instance()->name() = name;
 }
 
 DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
 
 void DirectX12RenderPipelineBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layout = m_state.pipelineLayout;
-  instance->m_impl->m_program = m_state.shaderProgram;
-  instance->m_impl->m_inputAssembler = m_state.inputAssembler;
-  instance->m_impl->m_rasterizer = m_state.rasterizer;
-  instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-  instance->handle() = instance->m_impl->initialize(m_state.samples);
+  auto && _instance = instance();
+  _instance->m_impl->m_layout = m_state.pipelineLayout;
+  _instance->m_impl->m_program = m_state.shaderProgram;
+  _instance->m_impl->m_inputAssembler = m_state.inputAssembler;
+  _instance->m_impl->m_rasterizer = m_state.rasterizer;
+  _instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
+  _instance->handle() = _instance->m_impl->initialize(m_state.samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -59,26 +59,26 @@ private:
   constexpr void doTransition(const IBuffer & buffer, ResourceAccess accessBefore,
                               ResourceAccess accessAfter) override
   {
-    this->transition(dynamic_cast<const buffer_type &>(buffer), accessBefore, accessAfter);
+    transition(dynamic_cast<const buffer_type &>(buffer), accessBefore, accessAfter);
   }
 
   constexpr void doTransition(const IBuffer & buffer, UInt32 element, ResourceAccess accessBefore,
                               ResourceAccess accessAfter) override
   {
-    this->transition(dynamic_cast<const buffer_type &>(buffer), element, accessBefore, accessAfter);
+    transition(dynamic_cast<const buffer_type &>(buffer), element, accessBefore, accessAfter);
   }
 
   constexpr void doTransition(const IImage & image, ResourceAccess accessBefore,
                               ResourceAccess accessAfter, ImageLayout layout) override
   {
-    this->transition(dynamic_cast<const image_type &>(image), accessBefore, accessAfter, layout);
+    transition(dynamic_cast<const image_type &>(image), accessBefore, accessAfter, layout);
   }
 
   constexpr void doTransition(const IImage & image, ResourceAccess accessBefore,
                               ResourceAccess accessAfter, ImageLayout fromLayout,
                               ImageLayout toLayout) override
   {
-    this->transition(dynamic_cast<const image_type &>(image), accessBefore, accessAfter, fromLayout,
+    transition(dynamic_cast<const image_type &>(image), accessBefore, accessAfter, fromLayout,
                      toLayout);
   }
 
@@ -86,7 +86,7 @@ private:
                               UInt32 layers, UInt32 plane, ResourceAccess accessBefore,
                               ResourceAccess accessAfter, ImageLayout layout) override
   {
-    this->transition(dynamic_cast<const image_type &>(image), level, levels, layer, layers, plane,
+    transition(dynamic_cast<const image_type &>(image), level, levels, layer, layers, plane,
                      accessBefore, accessAfter, layout);
   }
 
@@ -95,7 +95,7 @@ private:
                               ResourceAccess accessAfter, ImageLayout fromLayout,
                               ImageLayout toLayout) override
   {
-    this->transition(dynamic_cast<const image_type &>(image), level, levels, layer, layers, plane,
+    transition(dynamic_cast<const image_type &>(image), level, levels, layer, layers, plane,
                      accessBefore, accessAfter, fromLayout, toLayout);
   }
 };
@@ -205,26 +205,26 @@ private:
   void doUpdate(UInt32 binding, const IBuffer & buffer, UInt32 bufferElement, UInt32 elements,
                 UInt32 firstDescriptor) const override
   {
-    this->update(binding, dynamic_cast<const buffer_type &>(buffer), bufferElement, elements,
+    update(binding, dynamic_cast<const buffer_type &>(buffer), bufferElement, elements,
                  firstDescriptor);
   }
 
   void doUpdate(UInt32 binding, const IImage & texture, UInt32 descriptor, UInt32 firstLevel,
                 UInt32 levels, UInt32 firstLayer, UInt32 layers) const override
   {
-    this->update(binding, dynamic_cast<const image_type &>(texture), descriptor, firstLevel, levels,
+    update(binding, dynamic_cast<const image_type &>(texture), descriptor, firstLevel, levels,
                  firstLayer, layers);
   }
 
   void doUpdate(UInt32 binding, const ISampler & sampler, UInt32 descriptor) const override
   {
-    this->update(binding, dynamic_cast<const sampler_type &>(sampler), descriptor);
+    update(binding, dynamic_cast<const sampler_type &>(sampler), descriptor);
   }
 
   void doUpdate(UInt32 binding, const IAccelerationStructure & accelerationStructure,
                 UInt32 descriptor) const override
   {
-    this->update(binding, dynamic_cast<const acceleration_structure_type &>(accelerationStructure),
+    update(binding, dynamic_cast<const acceleration_structure_type &>(accelerationStructure),
                  descriptor);
   }
 };
@@ -300,33 +300,33 @@ public:
 private:
   inline Enumerable<const IDescriptorLayout *> getDescriptors() const noexcept override
   {
-    return this->descriptors();
+    return descriptors();
   }
 
   inline UniquePtr<IDescriptorSet> getDescriptorSet(
     UInt32 descriptors, const Enumerable<DescriptorBinding> & bindings = {}) const override
   {
-    return this->allocate(descriptors, bindings);
+    return allocate(descriptors, bindings);
   }
 
   inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(
     UInt32 descriptorSets, UInt32 descriptors,
     const Enumerable<Enumerable<DescriptorBinding>> & bindings = {}) const override
   {
-    return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
+    return allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
   }
 
   inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(
     UInt32 descriptorSets, UInt32 descriptors,
     std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override
   {
-    return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) |
+    return allocateMultiple(descriptorSets, descriptors, bindingFactory) |
            std::views::as_rvalue;
   }
 
   inline void releaseDescriptorSet(const IDescriptorSet & descriptorSet) const noexcept override
   {
-    this->releaseDescriptorSet(dynamic_cast<const descriptor_set_type &>(descriptorSet));
+    releaseDescriptorSet(dynamic_cast<const descriptor_set_type &>(descriptorSet));
   }
 };
 
@@ -370,7 +370,7 @@ public:
 private:
   inline Enumerable<const IPushConstantsRange *> getRanges() const noexcept override
   {
-    return this->ranges();
+    return ranges();
   }
 };
 
@@ -396,7 +396,7 @@ public:
 private:
   virtual inline Enumerable<const IShaderModule *> getModules() const noexcept
   {
-    return this->modules();
+    return modules();
   }
 };
 
@@ -435,7 +435,7 @@ public:
 private:
   inline Enumerable<const IDescriptorSetLayout *> getDescriptorSets() const noexcept override
   {
-    return this->descriptorSets();
+    return descriptorSets();
   }
 };
 
@@ -507,7 +507,7 @@ public:
 private:
   inline Enumerable<const IVertexBufferLayout *> getVertexBufferLayouts() const noexcept override
   {
-    return this->vertexBufferLayouts();
+    return vertexBufferLayouts();
   }
 };
 
@@ -544,12 +544,12 @@ public:
 private:
   inline SharedPtr<const IShaderProgram> getProgram() const noexcept override
   {
-    return std::static_pointer_cast<const IShaderProgram>(this->program());
+    return std::static_pointer_cast<const IShaderProgram>(program());
   }
 
   inline SharedPtr<const IPipelineLayout> getLayout() const noexcept override
   {
-    return std::static_pointer_cast<const IPipelineLayout>(this->layout());
+    return std::static_pointer_cast<const IPipelineLayout>(layout());
   }
 };
 
@@ -746,8 +746,8 @@ public:
   virtual inline void draw(const vertex_buffer_type & vertexBuffer, UInt32 instances = 1,
                            UInt32 firstVertex = 0, UInt32 firstInstance = 0) const
   {
-    this->bind(vertexBuffer);
-    this->draw(vertexBuffer.elements(), instances, firstVertex, firstInstance);
+    bind(vertexBuffer);
+    draw(vertexBuffer.elements(), instances, firstVertex, firstInstance);
   }
 
   /// <inheritdoc />
@@ -755,8 +755,8 @@ public:
                                   UInt32 firstIndex = 0, Int32 vertexOffset = 0,
                                   UInt32 firstInstance = 0) const
   {
-    this->bind(indexBuffer);
-    this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
+    bind(indexBuffer);
+    drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
   }
 
   /// <inheritdoc />
@@ -765,9 +765,9 @@ public:
                                   UInt32 firstIndex = 0, Int32 vertexOffset = 0,
                                   UInt32 firstInstance = 0) const
   {
-    this->bind(vertexBuffer);
-    this->bind(indexBuffer);
-    this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
+    bind(vertexBuffer);
+    bind(indexBuffer);
+    drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
   }
 
   /// <inheritdoc />
@@ -821,7 +821,7 @@ public:
                         const buffer_type * hitShaderBindingTable,
                         const buffer_type * callableShaderBindingTable) const noexcept
   {
-    this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets,
+    traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets,
                     rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable,
                     callableShaderBindingTable);
   }
@@ -830,23 +830,23 @@ private:
   inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore,
                                         PipelineStage syncAfter) const noexcept
   {
-    return this->makeBarrier(syncBefore, syncAfter);
+    return makeBarrier(syncBefore, syncAfter);
   }
 
-  inline void cmdBarrier(const IBarrier & barrier) const noexcept override
+  inline void cmdBarrier(const IBarrier & barrier_) const noexcept override
   {
-    this->barrier(dynamic_cast<const barrier_type &>(barrier));
+    barrier(dynamic_cast<const barrier_type &>(barrier_));
   }
 
   inline void cmdGenerateMipMaps(IImage & image) noexcept override
   {
-    this->generateMipMaps(dynamic_cast<image_type &>(image));
+    generateMipMaps(dynamic_cast<image_type &>(image));
   }
 
   inline void cmdTransfer(const IBuffer & source, const IBuffer & target, UInt32 sourceElement,
                           UInt32 targetElement, UInt32 elements) const override
   {
-    this->transfer(dynamic_cast<const buffer_type &>(source),
+    transfer(dynamic_cast<const buffer_type &>(source),
                    dynamic_cast<const buffer_type &>(target), sourceElement, targetElement,
                    elements);
   }
@@ -854,7 +854,7 @@ private:
   inline void cmdTransfer(const IBuffer & source, const IImage & target, UInt32 sourceElement,
                           UInt32 firstSubresource, UInt32 elements) const override
   {
-    this->transfer(dynamic_cast<const buffer_type &>(source),
+    transfer(dynamic_cast<const buffer_type &>(source),
                    dynamic_cast<const image_type &>(target), sourceElement, firstSubresource,
                    elements);
   }
@@ -862,7 +862,7 @@ private:
   inline void cmdTransfer(const IImage & source, const IImage & target, UInt32 sourceSubresource,
                           UInt32 targetSubresource, UInt32 subresources) const override
   {
-    this->transfer(dynamic_cast<const image_type &>(source),
+    transfer(dynamic_cast<const image_type &>(source),
                    dynamic_cast<const image_type &>(target), sourceSubresource, targetSubresource,
                    subresources);
   }
@@ -870,7 +870,7 @@ private:
   inline void cmdTransfer(const IImage & source, const IBuffer & target, UInt32 firstSubresource,
                           UInt32 targetElement, UInt32 subresources) const override
   {
-    this->transfer(dynamic_cast<const image_type &>(source),
+    transfer(dynamic_cast<const image_type &>(source),
                    dynamic_cast<const buffer_type &>(target), firstSubresource, targetElement,
                    subresources);
   }
@@ -879,7 +879,7 @@ private:
                           UInt32 sourceElement, UInt32 targetElement,
                           UInt32 elements) const override
   {
-    this->transfer(std::dynamic_pointer_cast<const buffer_type>(source),
+    transfer(std::dynamic_pointer_cast<const buffer_type>(source),
                    dynamic_cast<const buffer_type &>(target), sourceElement, targetElement,
                    elements);
   }
@@ -888,7 +888,7 @@ private:
                           UInt32 sourceElement, UInt32 firstSubresource,
                           UInt32 elements) const override
   {
-    this->transfer(std::dynamic_pointer_cast<const buffer_type>(source),
+    transfer(std::dynamic_pointer_cast<const buffer_type>(source),
                    dynamic_cast<const image_type &>(target), sourceElement, firstSubresource,
                    elements);
   }
@@ -897,7 +897,7 @@ private:
                           UInt32 sourceSubresource, UInt32 targetSubresource,
                           UInt32 subresources) const override
   {
-    this->transfer(std::dynamic_pointer_cast<const image_type>(source),
+    transfer(std::dynamic_pointer_cast<const image_type>(source),
                    dynamic_cast<const image_type &>(target), sourceSubresource, targetSubresource,
                    subresources);
   }
@@ -906,7 +906,7 @@ private:
                           UInt32 firstSubresource, UInt32 targetElement,
                           UInt32 subresources) const override
   {
-    this->transfer(std::dynamic_pointer_cast<const image_type>(source),
+    transfer(std::dynamic_pointer_cast<const image_type>(source),
                    dynamic_cast<const buffer_type &>(target), firstSubresource, targetElement,
                    subresources);
   }
@@ -914,36 +914,36 @@ private:
   inline void cmdTransfer(const void * const data, size_t size, const IBuffer & target,
                           UInt32 targetElement, UInt32 elements) const override
   {
-    this->transfer(data, size, dynamic_cast<const buffer_type &>(target), targetElement, elements);
+    transfer(data, size, dynamic_cast<const buffer_type &>(target), targetElement, elements);
   }
 
   inline void cmdTransfer(Span<const void * const> data, size_t elementSize, const IBuffer & target,
                           UInt32 targetElement) const override
   {
-    this->transfer(data, elementSize, dynamic_cast<const buffer_type &>(target), targetElement);
+    transfer(data, elementSize, dynamic_cast<const buffer_type &>(target), targetElement);
   }
 
   inline void cmdTransfer(const void * const data, size_t size, const IImage & target,
                           UInt32 subresource) const override
   {
-    this->transfer(data, size, dynamic_cast<const image_type &>(target), subresource);
+    transfer(data, size, dynamic_cast<const image_type &>(target), subresource);
   }
 
   inline void cmdTransfer(Span<const void * const> data, size_t elementSize, const IImage & target,
                           UInt32 firstSubresource, UInt32 elements) const override
   {
-    this->transfer(data, elementSize, dynamic_cast<const image_type &>(target), firstSubresource,
+    transfer(data, elementSize, dynamic_cast<const image_type &>(target), firstSubresource,
                    elements);
   }
 
   inline void cmdUse(const IPipeline & pipeline) const noexcept override
   {
-    this->use(dynamic_cast<const pipeline_type &>(pipeline));
+    use(dynamic_cast<const pipeline_type &>(pipeline));
   }
 
   inline void cmdBind(const IDescriptorSet & descriptorSet) const override
   {
-    this->bind(dynamic_cast<const descriptor_set_type &>(descriptorSet));
+    bind(dynamic_cast<const descriptor_set_type &>(descriptorSet));
   }
 
   inline void cmdBind(Span<const IDescriptorSet *> descriptorSets) const override
@@ -952,13 +952,13 @@ private:
                 std::views::transform([](auto set)
                                       { return dynamic_cast<const descriptor_set_type *>(set); }) |
                 std::ranges::to<Array<const descriptor_set_type *>>();
-    this->bind(Span<const descriptor_set_type *>(sets));
+    bind(Span<const descriptor_set_type *>(sets));
   }
 
   inline void cmdBind(const IDescriptorSet & descriptorSet,
                       const IPipeline & pipeline) const noexcept override
   {
-    this->bind(dynamic_cast<const descriptor_set_type &>(descriptorSet),
+    bind(dynamic_cast<const descriptor_set_type &>(descriptorSet),
                dynamic_cast<const pipeline_type &>(pipeline));
   }
 
@@ -969,43 +969,43 @@ private:
                 std::views::transform([](auto set)
                                       { return dynamic_cast<const descriptor_set_type *>(set); }) |
                 std::ranges::to<Array<const descriptor_set_type *>>();
-    this->bind(Span<const descriptor_set_type *>(sets),
+    bind(Span<const descriptor_set_type *>(sets),
                dynamic_cast<const pipeline_type &>(pipeline));
   }
 
   inline void cmdBind(const IVertexBuffer & buffer) const noexcept override
   {
-    this->bind(dynamic_cast<const vertex_buffer_type &>(buffer));
+    bind(dynamic_cast<const vertex_buffer_type &>(buffer));
   }
 
   inline void cmdBind(const IIndexBuffer & buffer) const noexcept override
   {
-    this->bind(dynamic_cast<const index_buffer_type &>(buffer));
+    bind(dynamic_cast<const index_buffer_type &>(buffer));
   }
 
   inline void cmdPushConstants(const IPushConstantsLayout & layout,
                                const void * const memory) const noexcept override
   {
-    this->pushConstants(dynamic_cast<const push_constants_layout_type &>(layout), memory);
+    pushConstants(dynamic_cast<const push_constants_layout_type &>(layout), memory);
   }
 
   inline void cmdDispatchIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                                   UInt64 offset) const noexcept override
   {
-    this->dispatchIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
+    dispatchIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
   }
 
   inline void cmdDispatchMeshIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                                       UInt64 offset) const noexcept override
   {
-    this->dispatchMeshIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
+    dispatchMeshIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
   }
 
   inline void cmdDispatchMeshIndirect(const IBuffer & batchBuffer, const IBuffer & countBuffer,
                                       UInt64 offset, UInt64 countOffset,
                                       UInt32 maxBatches) const noexcept override
   {
-    this->dispatchMeshIndirect(dynamic_cast<const buffer_type &>(batchBuffer),
+    dispatchMeshIndirect(dynamic_cast<const buffer_type &>(batchBuffer),
                                dynamic_cast<const buffer_type &>(countBuffer), offset, countOffset,
                                maxBatches);
   }
@@ -1013,21 +1013,21 @@ private:
   inline void cmdDraw(const IVertexBuffer & vertexBuffer, UInt32 instances, UInt32 firstVertex,
                       UInt32 firstInstance) const override
   {
-    this->draw(dynamic_cast<const vertex_buffer_type &>(vertexBuffer), instances, firstVertex,
+    draw(dynamic_cast<const vertex_buffer_type &>(vertexBuffer), instances, firstVertex,
                firstInstance);
   }
 
   inline void cmdDrawIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                               UInt64 offset) const noexcept override
   {
-    this->drawIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
+    drawIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
   }
 
   inline void cmdDrawIndirect(const IBuffer & batchBuffer, const IBuffer & countBuffer,
                               UInt64 offset, UInt64 countOffset,
                               UInt32 maxBatches) const noexcept override
   {
-    this->drawIndirect(dynamic_cast<const buffer_type &>(batchBuffer),
+    drawIndirect(dynamic_cast<const buffer_type &>(batchBuffer),
                        dynamic_cast<const buffer_type &>(countBuffer), offset, countOffset,
                        maxBatches);
   }
@@ -1035,7 +1035,7 @@ private:
   inline void cmdDrawIndexed(const IIndexBuffer & indexBuffer, UInt32 instances, UInt32 firstIndex,
                              Int32 vertexOffset, UInt32 firstInstance) const override
   {
-    this->drawIndexed(dynamic_cast<const index_buffer_type &>(indexBuffer), instances, firstIndex,
+    drawIndexed(dynamic_cast<const index_buffer_type &>(indexBuffer), instances, firstIndex,
                       vertexOffset, firstInstance);
   }
 
@@ -1043,7 +1043,7 @@ private:
                              UInt32 instances, UInt32 firstIndex, Int32 vertexOffset,
                              UInt32 firstInstance) const override
   {
-    this->drawIndexed(dynamic_cast<const vertex_buffer_type &>(vertexBuffer),
+    drawIndexed(dynamic_cast<const vertex_buffer_type &>(vertexBuffer),
                       dynamic_cast<const index_buffer_type &>(indexBuffer), instances, firstIndex,
                       vertexOffset, firstInstance);
   }
@@ -1051,26 +1051,26 @@ private:
   inline void cmdDrawIndexedIndirect(const IBuffer & batchBuffer, UInt32 batchCount,
                                      UInt64 offset) const noexcept override
   {
-    this->drawIndexedIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
+    drawIndexedIndirect(dynamic_cast<const buffer_type &>(batchBuffer), batchCount, offset);
   }
 
   inline void cmdDrawIndexedIndirect(const IBuffer & batchBuffer, const IBuffer & countBuffer,
                                      UInt64 offset, UInt64 countOffset,
                                      UInt32 maxBatches) const noexcept override
   {
-    this->drawIndexedIndirect(dynamic_cast<const buffer_type &>(batchBuffer),
+    drawIndexedIndirect(dynamic_cast<const buffer_type &>(batchBuffer),
                               dynamic_cast<const buffer_type &>(countBuffer), offset, countOffset,
                               maxBatches);
   }
 
   inline void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override
   {
-    this->execute(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
+    execute(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
   }
 
   inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override
   {
-    return this->execute(
+    return execute(
       commandBuffers |
       std::views::transform(
         [](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
@@ -1080,7 +1080,7 @@ private:
                                      const SharedPtr<const IBuffer> scratchBuffer,
                                      const IBuffer & buffer, UInt64 offset) const override
   {
-    this->buildAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type &>(blas),
+    buildAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type &>(blas),
                                      std::dynamic_pointer_cast<const buffer_type>(scratchBuffer),
                                      dynamic_cast<const buffer_type &>(buffer), offset);
   }
@@ -1089,7 +1089,7 @@ private:
                                      const SharedPtr<const IBuffer> scratchBuffer,
                                      const IBuffer & buffer, UInt64 offset) const override
   {
-    this->buildAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type &>(tlas),
+    buildAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type &>(tlas),
                                      std::dynamic_pointer_cast<const buffer_type>(scratchBuffer),
                                      dynamic_cast<const buffer_type &>(buffer), offset);
   }
@@ -1098,7 +1098,7 @@ private:
                                       const SharedPtr<const IBuffer> scratchBuffer,
                                       const IBuffer & buffer, UInt64 offset) const override
   {
-    this->updateAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type &>(
+    updateAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type &>(
                                         blas),
                                       std::dynamic_pointer_cast<const buffer_type>(scratchBuffer),
                                       dynamic_cast<const buffer_type &>(buffer), offset);
@@ -1108,7 +1108,7 @@ private:
                                       const SharedPtr<const IBuffer> scratchBuffer,
                                       const IBuffer & buffer, UInt64 offset) const override
   {
-    this->updateAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type &>(tlas),
+    updateAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type &>(tlas),
                                       std::dynamic_pointer_cast<const buffer_type>(scratchBuffer),
                                       dynamic_cast<const buffer_type &>(buffer), offset);
   }
@@ -1117,7 +1117,7 @@ private:
                                     const IBottomLevelAccelerationStructure & to,
                                     bool compress) const noexcept override
   {
-    this->copyAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type &>(
+    copyAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type &>(
                                       from),
                                     dynamic_cast<const bottom_level_acceleration_structure_type &>(
                                       to),
@@ -1128,7 +1128,7 @@ private:
                                     const ITopLevelAccelerationStructure & to,
                                     bool compress) const noexcept override
   {
-    this->copyAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type &>(
+    copyAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type &>(
                                       from),
                                     dynamic_cast<const top_level_acceleration_structure_type &>(to),
                                     compress);
@@ -1140,7 +1140,7 @@ private:
                     const IBuffer * missShaderBindingTable, const IBuffer * hitShaderBindingTable,
                     const IBuffer * callableShaderBindingTable) const noexcept override
   {
-    this->traceRays(width, height, depth, offsets,
+    traceRays(width, height, depth, offsets,
                     dynamic_cast<const buffer_type &>(rayGenerationShaderBindingTable),
                     dynamic_cast<const buffer_type *>(missShaderBindingTable),
                     dynamic_cast<const buffer_type *>(hitShaderBindingTable),
@@ -1182,12 +1182,12 @@ public:
 private:
   inline SharedPtr<IInputAssembler> getInputAssembler() const noexcept override
   {
-    return this->inputAssembler();
+    return inputAssembler();
   }
 
   inline SharedPtr<IRasterizer> getRasterizer() const noexcept override
   {
-    return this->rasterizer();
+    return rasterizer();
   }
 };
 
@@ -1237,7 +1237,7 @@ private:
   inline UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets & offsets,
                                                   ShaderBindingGroup groups) const noexcept override
   {
-    return this->allocateShaderBindingTable(offsets, groups);
+    return allocateShaderBindingTable(offsets, groups);
   }
 };
 
@@ -1265,7 +1265,7 @@ public:
   virtual Enumerable<const image_type *> images() const noexcept = 0;
 
 private:
-  inline Enumerable<const IImage *> getImages() const noexcept override { return this->images(); }
+  inline Enumerable<const IImage *> getImages() const noexcept override { return images(); }
 };
 
 /// <summary>
@@ -1299,7 +1299,7 @@ public:
   /// <inheritdoc />
   virtual inline UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const
   {
-    return this->submit(std::static_pointer_cast<const command_buffer_type>(commandBuffer));
+    return submit(std::static_pointer_cast<const command_buffer_type>(commandBuffer));
   }
 
   /// <inheritdoc />
@@ -1309,7 +1309,7 @@ public:
   virtual inline UInt64 submit(
     const Enumerable<SharedPtr<command_buffer_type>> & commandBuffers) const
   {
-    return this->submit(commandBuffers |
+    return submit(commandBuffers |
                         std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
   }
 
@@ -1321,18 +1321,18 @@ private:
   inline SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording,
                                                     bool secondary) const override
   {
-    return this->createCommandBuffer(beginRecording, secondary);
+    return createCommandBuffer(beginRecording, secondary);
   }
 
   inline UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const override
   {
-    return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
+    return submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
   }
 
   inline UInt64 submitCommandBuffers(
     const Enumerable<SharedPtr<const ICommandBuffer>> & commandBuffers) const override
   {
-    return this->submit(
+    return submit(
       commandBuffers |
       std::views::transform(
         [](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
@@ -1378,17 +1378,17 @@ public:
 private:
   inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override
   {
-    return this->commandBuffer(index);
+    return commandBuffer(index);
   }
 
   inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override
   {
-    return this->commandBuffers();
+    return commandBuffers();
   }
 
   inline void beginRenderPass(const IFrameBuffer & frameBuffer) const override
   {
-    this->begin(dynamic_cast<const frame_buffer_type &>(frameBuffer));
+    begin(dynamic_cast<const frame_buffer_type &>(frameBuffer));
   }
 };
 
@@ -1411,7 +1411,7 @@ public:
   virtual Enumerable<image_interface_type *> images() const noexcept = 0;
 
 private:
-  inline Enumerable<IImage *> getImages() const noexcept override { return this->images(); }
+  inline Enumerable<IImage *> getImages() const noexcept override { return images(); }
 };
 
 /// <summary>
@@ -1543,7 +1543,7 @@ public:
   inline UniquePtr<TBLAS> createBottomLevelAccelerationStructure(
     AccelerationStructureFlags flags) const
   {
-    return this->createBottomLevelAccelerationStructure("", flags);
+    return createBottomLevelAccelerationStructure("", flags);
   }
 
   /// <inheritdoc />
@@ -1554,7 +1554,7 @@ public:
   inline UniquePtr<TTLAS> createTopLevelAccelerationStructure(
     AccelerationStructureFlags flags) const
   {
-    return this->createTopLevelAccelerationStructure("", flags);
+    return createTopLevelAccelerationStructure("", flags);
   }
 
   /// <inheritdoc />
@@ -1565,21 +1565,21 @@ private:
   inline UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize,
                                       UInt32 elements, ResourceUsage usage) const override
   {
-    return this->createBuffer(type, heap, elementSize, elements, usage);
+    return createBuffer(type, heap, elementSize, elements, usage);
   }
 
   inline UniquePtr<IBuffer> getBuffer(const String & name, BufferType type, ResourceHeap heap,
                                       size_t elementSize, UInt32 elements,
                                       ResourceUsage usage) const override
   {
-    return this->createBuffer(name, type, heap, elementSize, elements, usage);
+    return createBuffer(name, type, heap, elementSize, elements, usage);
   }
 
   inline UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout & layout,
                                                   ResourceHeap heap, UInt32 elements,
                                                   ResourceUsage usage) const override
   {
-    return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type &>(layout), heap,
+    return createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type &>(layout), heap,
                                     elements, usage);
   }
 
@@ -1588,7 +1588,7 @@ private:
                                                   ResourceHeap heap, UInt32 elements,
                                                   ResourceUsage usage) const override
   {
-    return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type &>(layout),
+    return createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type &>(layout),
                                     heap, elements, usage);
   }
 
@@ -1596,7 +1596,7 @@ private:
                                                 ResourceHeap heap, UInt32 elements,
                                                 ResourceUsage usage) const override
   {
-    return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type &>(layout), heap,
+    return createIndexBuffer(dynamic_cast<const index_buffer_layout_type &>(layout), heap,
                                    elements, usage);
   }
 
@@ -1605,7 +1605,7 @@ private:
                                                 ResourceHeap heap, UInt32 elements,
                                                 ResourceUsage usage) const override
   {
-    return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type &>(layout),
+    return createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type &>(layout),
                                    heap, elements, usage);
   }
 
@@ -1613,7 +1613,7 @@ private:
                                       UInt32 levels, UInt32 layers, MultiSamplingLevel samples,
                                       ResourceUsage usage) const override
   {
-    return this->createTexture(format, size, dimension, levels, layers, samples, usage);
+    return createTexture(format, size, dimension, levels, layers, samples, usage);
   }
 
   inline UniquePtr<IImage> getTexture(const String & name, Format format, const Size3d & size,
@@ -1621,7 +1621,7 @@ private:
                                       MultiSamplingLevel samples,
                                       ResourceUsage usage) const override
   {
-    return this->createTexture(name, format, size, dimension, levels, layers, samples, usage);
+    return createTexture(name, format, size, dimension, levels, layers, samples, usage);
   }
 
   inline Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format,
@@ -1630,7 +1630,7 @@ private:
                                                    MultiSamplingLevel samples,
                                                    ResourceUsage usage) const override
   {
-    return this->createTextures(elements, format, size, dimension, layers, levels, samples, usage) |
+    return createTextures(elements, format, size, dimension, layers, levels, samples, usage) |
            std::views::as_rvalue;
   }
 
@@ -1639,7 +1639,7 @@ private:
                                         MipMapMode mipMapMode, Float mipMapBias, Float maxLod,
                                         Float minLod, Float anisotropy) const override
   {
-    return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
+    return createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
                                mipMapBias, maxLod, minLod, anisotropy);
   }
 
@@ -1649,7 +1649,7 @@ private:
                                         MipMapMode mipMapMode, Float mipMapBias, Float maxLod,
                                         Float minLod, Float anisotropy) const override
   {
-    return this->createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
+    return createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
                                mipMapBias, maxLod, minLod, anisotropy);
   }
 
@@ -1660,7 +1660,7 @@ private:
                                                      Float maxLod, Float minLod,
                                                      Float anisotropy) const override
   {
-    return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW,
+    return createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW,
                                 mipMapMode, mipMapBias, maxLod, minLod, anisotropy) |
            std::views::as_rvalue;
   }
@@ -1668,13 +1668,13 @@ private:
   inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(
     StringView name, AccelerationStructureFlags flags) const override
   {
-    return this->createBottomLevelAccelerationStructure(name, flags);
+    return createBottomLevelAccelerationStructure(name, flags);
   }
 
   inline UniquePtr<ITopLevelAccelerationStructure> getTlas(
     StringView name, AccelerationStructureFlags flags) const override
   {
-    return this->createTopLevelAccelerationStructure(name, flags);
+    return createTopLevelAccelerationStructure(name, flags);
   }
 };
 
@@ -1792,7 +1792,7 @@ public:
   inline [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(
     const Size2d & renderArea) const noexcept
   {
-    return this->makeFrameBuffer("", renderArea);
+    return makeFrameBuffer("", renderArea);
   }
 
   /// <inheritdoc />
@@ -1803,23 +1803,23 @@ private:
   inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore,
                                            PipelineStage syncAfter) const noexcept override
   {
-    return this->makeBarrier(syncBefore, syncAfter);
+    return makeBarrier(syncBefore, syncAfter);
   }
 
   inline UniquePtr<IFrameBuffer> getNewFrameBuffer(
     StringView name, const Size2d & renderArea) const noexcept override
   {
-    return this->makeFrameBuffer(renderArea);
+    return makeFrameBuffer(renderArea);
   }
 
   inline const ICommandQueue & getDefaultQueue(QueueType type) const
   {
-    return this->defaultQueue(type);
+    return defaultQueue(type);
   }
 
   inline const ICommandQueue * getNewQueue(QueueType type, QueuePriority priority) noexcept
   {
-    return this->createQueue(type, priority);
+    return createQueue(type, priority);
   }
 
 public:
@@ -1838,7 +1838,7 @@ private:
                                             UInt64 & bufferSize, UInt64 & scratchSize,
                                             bool forUpdate) const
   {
-    this->computeAccelerationStructureSizes(dynamic_cast<
+    computeAccelerationStructureSizes(dynamic_cast<
                                               const bottom_level_acceleration_structure_type &>(
                                               blas),
                                             bufferSize, scratchSize, forUpdate);
@@ -1848,7 +1848,7 @@ private:
                                             UInt64 & bufferSize, UInt64 & scratchSize,
                                             bool forUpdate) const
   {
-    this->computeAccelerationStructureSizes(dynamic_cast<
+    computeAccelerationStructureSizes(dynamic_cast<
                                               const top_level_acceleration_structure_type &>(tlas),
                                             bufferSize, scratchSize, forUpdate);
   }
@@ -2047,20 +2047,20 @@ public:
   /// <inheritdoc />
   virtual inline const device_type * operator[](const String & name) const noexcept
   {
-    return this->device(name);
+    return device(name);
   };
 
   /// <inheritdoc />
   virtual inline device_type * operator[](const String & name) noexcept
   {
-    return this->device(name);
+    return device(name);
   };
 
   // IRenderBackend interface
 private:
   inline Enumerable<const IGraphicsAdapter *> getAdapters() const override
   {
-    return this->listAdapters();
+    return listAdapters();
   }
 };
 } // namespace LiteFX::Rendering

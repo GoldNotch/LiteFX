@@ -325,7 +325,7 @@ void DirectX12BottomLevelAccelerationStructure::copy(
                                    D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
 
   // Get the amount of memory required. Note that in DirectX it is not possible to query the availability of size info, so we have to rely on external synchronization anyway.
-  UInt64 requiredMemory = this->size();
+  UInt64 requiredMemory = size();
   auto & device = static_cast<const DirectX12Queue &>(commandBuffer.queue()).device();
 
   // Validate the input arguments.
@@ -438,7 +438,7 @@ void DirectX12BottomLevelAccelerationStructure::doBuild(const ICommandBuffer & c
                                                         SharedPtr<const IBuffer> buffer,
                                                         UInt64 offset, UInt64 maxSize)
 {
-  this->build(dynamic_cast<const DirectX12CommandBuffer &>(commandBuffer),
+  build(dynamic_cast<const DirectX12CommandBuffer &>(commandBuffer),
               std::dynamic_pointer_cast<const IDirectX12Buffer>(scratchBuffer),
               std::dynamic_pointer_cast<const IDirectX12Buffer>(buffer), offset, maxSize);
 }
@@ -448,7 +448,7 @@ void DirectX12BottomLevelAccelerationStructure::doUpdate(const ICommandBuffer & 
                                                          SharedPtr<const IBuffer> buffer,
                                                          UInt64 offset, UInt64 maxSize)
 {
-  this->update(dynamic_cast<const DirectX12CommandBuffer &>(commandBuffer),
+  update(dynamic_cast<const DirectX12CommandBuffer &>(commandBuffer),
                std::dynamic_pointer_cast<const IDirectX12Buffer>(scratchBuffer),
                std::dynamic_pointer_cast<const IDirectX12Buffer>(buffer), offset, maxSize);
 }
@@ -457,7 +457,7 @@ void DirectX12BottomLevelAccelerationStructure::doCopy(
   const ICommandBuffer & commandBuffer, IBottomLevelAccelerationStructure & destination,
   bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const
 {
-  this->copy(dynamic_cast<const DirectX12CommandBuffer &>(commandBuffer),
+  copy(dynamic_cast<const DirectX12CommandBuffer &>(commandBuffer),
              dynamic_cast<DirectX12BottomLevelAccelerationStructure &>(destination), compress,
              std::dynamic_pointer_cast<const IDirectX12Buffer>(buffer), offset, copyBuildInfo);
 }

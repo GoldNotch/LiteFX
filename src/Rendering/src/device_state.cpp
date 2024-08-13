@@ -39,7 +39,7 @@ DeviceState::DeviceState() noexcept
 {
 }
 
-DeviceState::~DeviceState() noexcept { this->clear(); }
+DeviceState::~DeviceState() noexcept { clear(); }
 
 void DeviceState::clear()
 {
@@ -103,7 +103,7 @@ void DeviceState::clear()
 
 void DeviceState::add(UniquePtr<IRenderPass> && renderPass)
 {
-  this->add(renderPass->name(), std::move(renderPass));
+  add(renderPass->name(), std::move(renderPass));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IRenderPass> && renderPass)
@@ -122,7 +122,7 @@ void DeviceState::add(const String & id, UniquePtr<IRenderPass> && renderPass)
 
 void DeviceState::add(UniquePtr<IFrameBuffer> && frameBuffer)
 {
-  this->add(frameBuffer->name(), std::move(frameBuffer));
+  add(frameBuffer->name(), std::move(frameBuffer));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IFrameBuffer> && frameBuffer)
@@ -141,7 +141,7 @@ void DeviceState::add(const String & id, UniquePtr<IFrameBuffer> && frameBuffer)
 
 void DeviceState::add(UniquePtr<IPipeline> && pipeline)
 {
-  this->add(pipeline->name(), std::move(pipeline));
+  add(pipeline->name(), std::move(pipeline));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IPipeline> && pipeline)
@@ -160,7 +160,7 @@ void DeviceState::add(const String & id, UniquePtr<IPipeline> && pipeline)
 
 void DeviceState::add(UniquePtr<IBuffer> && buffer)
 {
-  this->add(buffer->name(), std::move(buffer));
+  add(buffer->name(), std::move(buffer));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IBuffer> && buffer)
@@ -179,7 +179,7 @@ void DeviceState::add(const String & id, UniquePtr<IBuffer> && buffer)
 
 void DeviceState::add(UniquePtr<IVertexBuffer> && vertexBuffer)
 {
-  this->add(vertexBuffer->name(), std::move(vertexBuffer));
+  add(vertexBuffer->name(), std::move(vertexBuffer));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IVertexBuffer> && vertexBuffer)
@@ -198,7 +198,7 @@ void DeviceState::add(const String & id, UniquePtr<IVertexBuffer> && vertexBuffe
 
 void DeviceState::add(UniquePtr<IIndexBuffer> && indexBuffer)
 {
-  this->add(indexBuffer->name(), std::move(indexBuffer));
+  add(indexBuffer->name(), std::move(indexBuffer));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IIndexBuffer> && indexBuffer)
@@ -215,7 +215,7 @@ void DeviceState::add(const String & id, UniquePtr<IIndexBuffer> && indexBuffer)
   m_impl->m_indexBuffers.insert(std::make_pair(id, std::move(indexBuffer)));
 }
 
-void DeviceState::add(UniquePtr<IImage> && image) { this->add(image->name(), std::move(image)); }
+void DeviceState::add(UniquePtr<IImage> && image) { add(image->name(), std::move(image)); }
 
 void DeviceState::add(const String & id, UniquePtr<IImage> && image)
 {
@@ -233,7 +233,7 @@ void DeviceState::add(const String & id, UniquePtr<IImage> && image)
 
 void DeviceState::add(UniquePtr<ISampler> && sampler)
 {
-  this->add(sampler->name(), std::move(sampler));
+  add(sampler->name(), std::move(sampler));
 }
 
 void DeviceState::add(const String & id, UniquePtr<ISampler> && sampler)
@@ -252,7 +252,7 @@ void DeviceState::add(const String & id, UniquePtr<ISampler> && sampler)
 
 void DeviceState::add(UniquePtr<IAccelerationStructure> && accelerationStructure)
 {
-  this->add(accelerationStructure->name(), std::move(accelerationStructure));
+  add(accelerationStructure->name(), std::move(accelerationStructure));
 }
 
 void DeviceState::add(const String & id, UniquePtr<IAccelerationStructure> && accelerationStructure)

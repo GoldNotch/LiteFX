@@ -129,7 +129,7 @@ VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
 void VulkanInputAssemblerBuilder::build()
 {
-  this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue,
+  instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue,
                                        std::move(m_state.indexBufferLayout), m_state.topology);
 }
 

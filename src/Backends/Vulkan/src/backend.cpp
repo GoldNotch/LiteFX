@@ -34,7 +34,7 @@ public:
     m_extensions.assign(std::begin(extensions), std::end(extensions));
     m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
 
-    this->defineMandatoryExtensions();
+    defineMandatoryExtensions();
   }
 
   void defineMandatoryExtensions()
@@ -264,36 +264,36 @@ VulkanBackend::VulkanBackend(const App & app, Span<String> extensions,
   : m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers))
   , Resource<VkInstance>(nullptr)
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
   m_impl->loadAdapters();
 
   LITEFX_DEBUG(VULKAN_LOG,
                "--------------------------------------------------------------------------");
   LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}",
-               Join(this->getAvailableInstanceExtensions(), ", "));
+               Join(getAvailableInstanceExtensions(), ", "));
   LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}",
-               Join(this->getInstanceValidationLayers(), ", "));
+               Join(getInstanceValidationLayers(), ", "));
   LITEFX_DEBUG(VULKAN_LOG,
                "--------------------------------------------------------------------------");
 
-  if (this->getEnabledValidationLayers().size() > 0)
+  if (getEnabledValidationLayers().size() > 0)
     LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}",
-                Join(this->getEnabledValidationLayers(), ", "));
+                Join(getEnabledValidationLayers(), ", "));
 }
 
 VulkanBackend::~VulkanBackend() noexcept
 {
   m_impl.destroy();
-  ::vkDestroyInstance(this->handle(), nullptr);
+  ::vkDestroyInstance(handle(), nullptr);
 }
 
 BackendType VulkanBackend::type() const noexcept { return BackendType::Rendering; }
 
 String VulkanBackend::name() const noexcept { return "Vulkan"; }
 
-void VulkanBackend::activate() { this->state() = BackendState::Active; }
+void VulkanBackend::activate() { state() = BackendState::Active; }
 
-void VulkanBackend::deactivate() { this->state() = BackendState::Inactive; }
+void VulkanBackend::deactivate() { state() = BackendState::Inactive; }
 
 Enumerable<const VulkanGraphicsAdapter *> VulkanBackend::listAdapters() const
 {
@@ -377,18 +377,18 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND & hwnd) const
   createInfo.hinstance = ::GetModuleHandle(nullptr);
 
   VkSurfaceKHR surface;
-  raiseIfFailed(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface),
+  raiseIfFailed(::vkCreateWin32SurfaceKHR(handle(), &createInfo, nullptr, &surface),
                 "Unable to create vulkan surface for provided window.");
 
-  return makeUnique<VulkanSurface>(surface, this->handle(), hwnd);
+  return makeUnique<VulkanSurface>(surface, handle(), hwnd);
 }
 
 #else
 
 UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate) const
 {
-  auto surface = predicate(this->handle());
-  return makeUnique<VulkanSurface>(surface, this->handle());
+  auto surface = predicate(handle());
+  return makeUnique<VulkanSurface>(surface, handle());
 }
 
 #endif

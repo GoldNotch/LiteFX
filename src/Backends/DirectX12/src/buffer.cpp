@@ -42,19 +42,19 @@ public:
 DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource> && buffer, BufferType type, UInt32 elements,
                                  size_t elementSize, size_t alignment, ResourceUsage usage,
                                  AllocatorPtr allocator, AllocationPtr && allocation,
-                                 const String & name)
+                                 const String & name_)
   : m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, usage,
                                           allocator, std::move(allocation)))
   , ComResource<ID3D12Resource>(nullptr)
 {
-  this->handle() = std::move(buffer);
+  handle() = std::move(buffer);
 
-  if (!name.empty())
+  if (!name_.empty())
   {
-    this->name() = name;
+    name() = name_;
 
 #ifndef NDEBUG
-    this->handle()->SetName(Widen(name).c_str());
+    handle()->SetName(Widen(name_).c_str());
 #endif
   }
 }
@@ -67,7 +67,7 @@ UInt32 DirectX12Buffer::elements() const noexcept { return m_impl->m_elements; }
 
 size_t DirectX12Buffer::size() const noexcept
 {
-  return static_cast<size_t>(m_impl->m_elements) * this->alignedElementSize();
+  return static_cast<size_t>(m_impl->m_elements) * alignedElementSize();
 }
 
 size_t DirectX12Buffer::elementSize() const noexcept { return m_impl->m_elementSize; }
@@ -83,12 +83,9 @@ size_t DirectX12Buffer::alignedElementSize() const noexcept
 
 ResourceUsage DirectX12Buffer::usage() const noexcept { return m_impl->m_usage; }
 
-UInt64 DirectX12Buffer::virtualAddress() const noexcept
-{
-  return this->handle()->GetGPUVirtualAddress();
-}
+UInt64 DirectX12Buffer::virtualAddress() const noexcept { return handle()->GetGPUVirtualAddress(); }
 
-void DirectX12Buffer::map(const void * const data, size_t size, UInt32 element)
+void DirectX12Buffer::map(const void * const data, size_t size_, UInt32 element)
 {
   if (element >= m_impl->m_elements) [[unlikely]]
     throw ArgumentOutOfRangeException(
@@ -98,12 +95,11 @@ void DirectX12Buffer::map(const void * const data, size_t size, UInt32 element)
 
   D3D12_RANGE mappedRange = {};
   char * buffer;
-  raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void **>(&buffer)),
+  raiseIfFailed(handle()->Map(0, &mappedRange, reinterpret_cast<void **>(&buffer)),
                 "Unable to map buffer memory.");
-  auto result =
-    ::memcpy_s(reinterpret_cast<void *>(buffer + (element * this->alignedElementSize())),
-               this->size(), data, size);
-  this->handle()->Unmap(0, nullptr);
+  auto result = ::memcpy_s(reinterpret_cast<void *>(buffer + (element * alignedElementSize())),
+                           size(), data, size_);
+  handle()->Unmap(0, nullptr);
 
   if (result != 0) [[unlikely]]
     throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
@@ -112,10 +108,10 @@ void DirectX12Buffer::map(const void * const data, size_t size, UInt32 element)
 void DirectX12Buffer::map(Span<const void * const> data, size_t elementSize, UInt32 firstElement)
 {
   std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void * const mem) mutable
-                        { this->map(mem, elementSize, i++); });
+                        { map(mem, elementSize, i++); });
 }
 
-void DirectX12Buffer::map(void * data, size_t size, UInt32 element, bool write)
+void DirectX12Buffer::map(void * data, size_t size_, UInt32 element, bool write)
 {
   if (element >= m_impl->m_elements) [[unlikely]]
     throw ArgumentOutOfRangeException(
@@ -125,16 +121,15 @@ void DirectX12Buffer::map(void * data, size_t size, UInt32 element, bool write)
 
   D3D12_RANGE mappedRange = {};
   char * buffer;
-  raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void **>(&buffer)),
+  raiseIfFailed(handle()->Map(0, &mappedRange, reinterpret_cast<void **>(&buffer)),
                 "Unable to map buffer memory.");
   auto result =
-    write
-      ? ::memcpy_s(reinterpret_cast<void *>(buffer + (element * this->alignedElementSize())),
-                   this->size(), data, size)
-      : ::memcpy_s(data, size,
-                   reinterpret_cast<void *>(buffer + (element * this->alignedElementSize())), size);
+    write ? ::memcpy_s(reinterpret_cast<void *>(buffer + (element * alignedElementSize())), size(),
+                       data, size_)
+          : ::memcpy_s(data, size_,
+                       reinterpret_cast<void *>(buffer + (element * alignedElementSize())), size_);
 
-  this->handle()->Unmap(0, nullptr);
+  handle()->Unmap(0, nullptr);
 
   if (result != 0) [[unlikely]]
     throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
@@ -143,7 +138,7 @@ void DirectX12Buffer::map(void * data, size_t size, UInt32 element, bool write)
 void DirectX12Buffer::map(Span<void *> data, size_t elementSize, UInt32 firstElement, bool write)
 {
   std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void * mem) mutable
-                        { this->map(mem, elementSize, i++, write); });
+                        { map(mem, elementSize, i++, write); });
 }
 
 AllocatorPtr DirectX12Buffer::allocator() const noexcept { return m_impl->m_allocator; }

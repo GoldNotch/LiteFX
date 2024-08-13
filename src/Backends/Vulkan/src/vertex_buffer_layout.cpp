@@ -60,6 +60,6 @@ Enumerable<const BufferAttribute *> VulkanVertexBufferLayout::attributes() const
 
 void VulkanVertexBufferLayoutBuilder::build()
 {
-  this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
+  instance()->m_impl->m_attributes = std::move(m_state.attributes);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

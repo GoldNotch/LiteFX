@@ -86,7 +86,7 @@ public:
 
     // Store the pipeline layout on the push constants.
     if (m_pushConstantsLayout != nullptr)
-      m_pushConstantsLayout->pipelineLayout(*this->m_parent);
+      m_pushConstantsLayout->pipelineLayout(*m_parent);
 
     // Query for the descriptor set layout handles.
     auto descriptorSetLayouts =
@@ -143,7 +143,7 @@ VulkanPipelineLayout::VulkanPipelineLayout(
                                                std::move(pushConstantsLayout)))
   , Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice & device) noexcept
@@ -154,7 +154,7 @@ VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice & device) noexcept
 
 VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 {
-  ::vkDestroyPipelineLayout(m_impl->m_device.handle(), this->handle(), nullptr);
+  ::vkDestroyPipelineLayout(m_impl->m_device.handle(), handle(), nullptr);
 }
 
 const VulkanDevice & VulkanPipelineLayout::device() const noexcept { return m_impl->m_device; }
@@ -221,10 +221,10 @@ VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 
 void VulkanPipelineLayoutBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
-  instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
-  instance->handle() = instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
+  _instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
+  _instance->handle() = _instance->m_impl->initialize();
 }
 
 VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space,

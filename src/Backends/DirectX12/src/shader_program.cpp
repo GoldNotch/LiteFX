@@ -56,8 +56,8 @@ private:
 
     bool equals(const DescriptorInfo & rhs)
     {
-      return this->location == rhs.location && this->elements == rhs.elements &&
-             this->elementSize == rhs.elementSize && this->type == rhs.type;
+      return location == rhs.location && elements == rhs.elements &&
+             elementSize == rhs.elementSize && type == rhs.type;
     }
   };
 
@@ -544,7 +544,7 @@ public:
               // Get the bound resource description.
               D3D12_SHADER_INPUT_BIND_DESC inputDesc;
               functionReflection->GetResourceBindingDesc(i, &inputDesc);
-              auto descriptor = this->getReflectionDescriptorDesc(inputDesc, functionReflection);
+              auto descriptor = getReflectionDescriptorDesc(inputDesc, functionReflection);
 
               // Register the descriptor.
               registerDescriptor(descriptor, inputDesc, shaderModule.get());
@@ -572,7 +572,7 @@ public:
             // Get the bound resource description.
             D3D12_SHADER_INPUT_BIND_DESC inputDesc;
             shaderReflection->GetResourceBindingDesc(i, &inputDesc);
-            auto descriptor = this->getReflectionDescriptorDesc(inputDesc, shaderReflection.Get());
+            auto descriptor = getReflectionDescriptorDesc(inputDesc, shaderReflection.Get());
 
             // Register the descriptor.
             registerDescriptor(descriptor, inputDesc, shaderModule.get());
@@ -599,7 +599,7 @@ public:
         // Reflect the root signature in order to define static samplers and push constants.
         LITEFX_TRACE(DIRECTX12_LOG, "Found root signature in shader module {0}.",
                      shaderModule->type());
-        this->reflectRootSignature(deserializer, descriptorSetLayouts, pushConstantRanges);
+        reflectRootSignature(deserializer, descriptorSetLayouts, pushConstantRanges);
         hasRootSignature = true;
         break;
       }
@@ -766,8 +766,8 @@ DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = defau
 
 void DirectX12ShaderProgramBuilder::build()
 {
-  this->instance()->m_impl->m_modules = std::move(m_state.modules);
-  this->instance()->m_impl->validate();
+  instance()->m_impl->m_modules = std::move(m_state.modules);
+  instance()->m_impl->validate();
 }
 
 UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(

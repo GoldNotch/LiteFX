@@ -52,19 +52,19 @@ DirectX12Image::DirectX12Image(const DirectX12Device & device, ComPtr<ID3D12Reso
                                const Size3d & extent, Format format, ImageDimensions dimension,
                                UInt32 levels, UInt32 layers, MultiSamplingLevel samples,
                                ResourceUsage usage, AllocatorPtr allocator,
-                               AllocationPtr && allocation, const String & name)
+                               AllocationPtr && allocation, const String & name_)
   : m_impl(makePimpl<DirectX12ImageImpl>(this, device, extent, format, dimension, levels, layers,
                                          samples, usage, allocator, std::move(allocation)))
   , ComResource<ID3D12Resource>(nullptr)
 {
-  this->handle() = std::move(image);
+  handle() = std::move(image);
 
-  if (!name.empty())
+  if (!name_.empty())
   {
-    this->name() = name;
+    name() = name_;
 
 #ifndef NDEBUG
-    this->handle()->SetName(Widen(name).c_str());
+    handle()->SetName(Widen(name_).c_str());
 #endif
   }
 }
@@ -93,7 +93,7 @@ size_t DirectX12Image::size() const noexcept
   }
 }
 
-size_t DirectX12Image::elementSize() const noexcept { return this->size(); }
+size_t DirectX12Image::elementSize() const noexcept { return size(); }
 
 size_t DirectX12Image::elementAlignment() const noexcept
 {
@@ -104,14 +104,14 @@ size_t DirectX12Image::elementAlignment() const noexcept
 size_t DirectX12Image::alignedElementSize() const noexcept
 {
   // TODO: Align this by `elementAlignment`.
-  return this->elementSize();
+  return elementSize();
 }
 
 ResourceUsage DirectX12Image::usage() const noexcept { return m_impl->m_usage; }
 
 UInt64 DirectX12Image::virtualAddress() const noexcept
 {
-  return static_cast<UInt64>(this->handle()->GetGPUVirtualAddress());
+  return static_cast<UInt64>(handle()->GetGPUVirtualAddress());
 }
 
 size_t DirectX12Image::size(UInt32 level) const noexcept
@@ -119,16 +119,16 @@ size_t DirectX12Image::size(UInt32 level) const noexcept
   if (level >= m_impl->m_levels)
     return 0;
 
-  auto size = this->extent(level);
+  auto size = extent(level);
 
-  switch (this->dimensions())
+  switch (dimensions())
   {
-    case ImageDimensions::DIM_1: return ::getSize(this->format()) * size.width();
+    case ImageDimensions::DIM_1: return ::getSize(format()) * size.width();
     case ImageDimensions::CUBE:
-    case ImageDimensions::DIM_2: return ::getSize(this->format()) * size.width() * size.height();
+    case ImageDimensions::DIM_2: return ::getSize(format()) * size.width() * size.height();
     default:
     case ImageDimensions::DIM_3:
-      return ::getSize(this->format()) * size.width() * size.height() * size.depth();
+      return ::getSize(format()) * size.width() * size.height() * size.depth();
   }
 }
 
@@ -258,13 +258,13 @@ DirectX12Sampler::DirectX12Sampler(const DirectX12Device & device, FilterMode ma
                                    FilterMode minFilter, BorderMode borderU, BorderMode borderV,
                                    BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias,
                                    Float minLod, Float maxLod, Float anisotropy,
-                                   const String & name)
+                                   const String & name_)
   : m_impl(makePimpl<DirectX12SamplerImpl>(this, device, magFilter, minFilter, borderU, borderV,
                                            borderW, mipMapMode, mipMapBias, minLod, maxLod,
                                            anisotropy))
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 DirectX12Sampler::~DirectX12Sampler() noexcept = default;

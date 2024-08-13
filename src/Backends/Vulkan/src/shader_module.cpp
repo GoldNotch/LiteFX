@@ -40,7 +40,7 @@ private:
     if (!file.is_open())
       throw std::runtime_error("Unable to open shader file.");
 
-    return this->readStreamContents(file);
+    return readStreamContents(file);
   }
 
   String readStreamContents(std::istream & stream)
@@ -49,11 +49,11 @@ private:
   }
 
 public:
-  VkShaderModule initialize() { return this->initialize(this->readFileContents(m_fileName)); }
+  VkShaderModule initialize() { return initialize(readFileContents(m_fileName)); }
 
   VkShaderModule initialize(std::istream & stream)
   {
-    return this->initialize(this->readStreamContents(stream));
+    return initialize(readStreamContents(stream));
   }
 
   VkShaderModule initialize(String fileContents)
@@ -90,7 +90,7 @@ VulkanShaderModule::VulkanShaderModule(
   , m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint,
                                              shaderLocalDescriptor))
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 VulkanShaderModule::VulkanShaderModule(
@@ -100,12 +100,12 @@ VulkanShaderModule::VulkanShaderModule(
   , m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, name, entryPoint,
                                              shaderLocalDescriptor))
 {
-  this->handle() = m_impl->initialize(stream);
+  handle() = m_impl->initialize(stream);
 }
 
 VulkanShaderModule::~VulkanShaderModule() noexcept
 {
-  ::vkDestroyShaderModule(m_impl->m_device.handle(), this->handle(), nullptr);
+  ::vkDestroyShaderModule(m_impl->m_device.handle(), handle(), nullptr);
 }
 
 ShaderStage VulkanShaderModule::type() const noexcept { return m_impl->m_type; }
@@ -120,9 +120,9 @@ VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition() cons
 {
   VkPipelineShaderStageCreateInfo shaderStageDefinition = {};
   shaderStageDefinition.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  shaderStageDefinition.module = this->handle();
-  shaderStageDefinition.pName = this->entryPoint().c_str();
-  shaderStageDefinition.stage = Vk::getShaderStage(this->type());
+  shaderStageDefinition.module = handle();
+  shaderStageDefinition.pName = entryPoint().c_str();
+  shaderStageDefinition.stage = Vk::getShaderStage(type());
 
   return shaderStageDefinition;
 }

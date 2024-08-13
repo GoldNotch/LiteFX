@@ -208,19 +208,19 @@ VulkanBarrierBuilder::~VulkanBarrierBuilder() noexcept = default;
 
 void VulkanBarrierBuilder::setupStages(PipelineStage waitFor, PipelineStage continueWith)
 {
-  this->instance()->syncBefore() = waitFor;
-  this->instance()->syncAfter() = continueWith;
+  instance()->syncBefore() = waitFor;
+  instance()->syncAfter() = continueWith;
 }
 
 void VulkanBarrierBuilder::setupGlobalBarrier(ResourceAccess before, ResourceAccess after)
 {
-  this->instance()->wait(before, after);
+  instance()->wait(before, after);
 }
 
 void VulkanBarrierBuilder::setupBufferBarrier(IBuffer & buffer, ResourceAccess before,
                                               ResourceAccess after)
 {
-  this->instance()->transition(buffer, before, after);
+  instance()->transition(buffer, before, after);
 }
 
 void VulkanBarrierBuilder::setupImageBarrier(IImage & image, ResourceAccess before,
@@ -230,7 +230,7 @@ void VulkanBarrierBuilder::setupImageBarrier(IImage & image, ResourceAccess befo
 {
   auto numLevels = levels > 0 ? levels : image.levels() - level;
   auto numLayers = layers > 0 ? layers : image.layers() - layer;
-  this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after,
+  instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after,
                                layout);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

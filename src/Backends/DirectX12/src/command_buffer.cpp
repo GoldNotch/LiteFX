@@ -172,7 +172,7 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue & queue, boo
   : m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue))
   , ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
-  this->handle() = m_impl->initialize(begin, primary);
+  handle() = m_impl->initialize(begin, primary);
 
   if (begin)
     m_impl->bindDescriptorHeaps();
@@ -195,7 +195,7 @@ void DirectX12CommandBuffer::end() const
 {
   // Close the command list, so that it does not longer record any commands.
   if (m_impl->m_recording)
-    raiseIfFailed(this->handle()->Close(), "Unable to close command buffer for recording.");
+    raiseIfFailed(handle()->Close(), "Unable to close command buffer for recording.");
 
   m_impl->m_recording = false;
 }
@@ -215,7 +215,7 @@ void DirectX12CommandBuffer::setViewports(Span<const IViewport *> viewports) con
                }) |
              std::ranges::to<Array<D3D12_VIEWPORT>>();
 
-  this->handle()->RSSetViewports(vps.size(), vps.data());
+  handle()->RSSetViewports(vps.size(), vps.data());
 }
 
 void DirectX12CommandBuffer::setViewports(const IViewport * viewport) const noexcept
@@ -223,7 +223,7 @@ void DirectX12CommandBuffer::setViewports(const IViewport * viewport) const noex
   auto vp = CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(),
                              viewport->getRectangle().width(), viewport->getRectangle().height(),
                              viewport->getMinDepth(), viewport->getMaxDepth());
-  this->handle()->RSSetViewports(1, &vp);
+  handle()->RSSetViewports(1, &vp);
 }
 
 void DirectX12CommandBuffer::setScissors(Span<const IScissor *> scissors) const noexcept
@@ -238,33 +238,33 @@ void DirectX12CommandBuffer::setScissors(Span<const IScissor *> scissors) const 
                }) |
              std::ranges::to<Array<D3D12_RECT>>();
 
-  this->handle()->RSSetScissorRects(scs.size(), scs.data());
+  handle()->RSSetScissorRects(scs.size(), scs.data());
 }
 
 void DirectX12CommandBuffer::setScissors(const IScissor * scissor) const noexcept
 {
   auto s = CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(),
                         scissor->getRectangle().width(), scissor->getRectangle().height());
-  this->handle()->RSSetScissorRects(1, &s);
+  handle()->RSSetScissorRects(1, &s);
 }
 
 void DirectX12CommandBuffer::setBlendFactors(const Vector4f & blendFactors) const noexcept
 {
-  this->handle()->OMSetBlendFactor(blendFactors.elements());
+  handle()->OMSetBlendFactor(blendFactors.elements());
 }
 
 void DirectX12CommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
-  this->handle()->OMSetStencilRef(stencilRef);
+  handle()->OMSetStencilRef(stencilRef);
 }
 
 UInt64 DirectX12CommandBuffer::submit() const
 {
-  if (this->isSecondary())
+  if (isSecondary())
     throw RuntimeException(
       "A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
 
-  return m_impl->m_queue.submit(this->shared_from_this());
+  return m_impl->m_queue.submit(shared_from_this());
 }
 
 void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image & image) noexcept
@@ -304,7 +304,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image & image) noexcept
 
   // Set the active pipeline state.
   auto & pipeline = m_impl->m_queue.device().blitPipeline();
-  this->use(pipeline);
+  use(pipeline);
 
   // Create and bind the parameters.
   const auto & resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
@@ -324,13 +324,13 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image & image) noexcept
                                                                   BorderMode::ClampToEdge,
                                                                   BorderMode::ClampToEdge);
   samplerBindings->update(0, *sampler);
-  this->bind(*samplerBindings, pipeline);
+  bind(*samplerBindings, pipeline);
 
   // Transition the texture into a read/write state.
   DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
   startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite,
                           ImageLayout::Undefined, ImageLayout::ReadWrite);
-  this->barrier(startBarrier);
+  barrier(startBarrier);
   auto resource = resourceBindings.begin();
 
   for (int l(0); l < image.layers(); ++l, ++resource)
@@ -349,8 +349,8 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image & image) noexcept
       (*resource)->update(2, image, 0, i, 1, l, 1);
 
       // Dispatch the pipeline.
-      this->bind(*(*resource), pipeline);
-      this->dispatch(
+      bind(*(*resource), pipeline);
+      dispatch(
         {std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1});
 
       // Wait for all writes.
@@ -358,7 +358,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image & image) noexcept
       subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite,
                             ResourceAccess::ShaderRead, ImageLayout::ReadWrite,
                             ImageLayout::ShaderResource);
-      this->barrier(subBarrier);
+      barrier(subBarrier);
       resource++;
     }
 
@@ -367,7 +367,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image & image) noexcept
     endBarrier.transition(image, 0, 1, l, 1, 0, ResourceAccess::ShaderReadWrite,
                           ResourceAccess::ShaderRead, ImageLayout::ReadWrite,
                           ImageLayout::ShaderResource);
-    this->barrier(endBarrier);
+    barrier(endBarrier);
   }
 }
 
@@ -398,7 +398,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer & source,
       "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.",
       target.elements(), elements, targetElement);
 
-  this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(),
+  handle()->CopyBufferRegion(std::as_const(target).handle().Get(),
                                    targetElement * target.alignedElementSize(),
                                    std::as_const(source).handle().Get(),
                                    sourceElement * source.alignedElementSize(),
@@ -418,7 +418,7 @@ void DirectX12CommandBuffer::transfer(const void * const data, size_t size,
                                                               target.elementSize(), elements)));
   stagingBuffer->map(data, size, 0);
 
-  this->transfer(stagingBuffer, target, 0, targetElement, elements);
+  transfer(stagingBuffer, target, 0, targetElement, elements);
 }
 
 void DirectX12CommandBuffer::transfer(Span<const void * const> data, size_t elementSize,
@@ -430,7 +430,7 @@ void DirectX12CommandBuffer::transfer(Span<const void * const> data, size_t elem
                                                               target.elementSize(), elements)));
   stagingBuffer->map(data, elementSize, 0);
 
-  this->transfer(stagingBuffer, target, 0, firstElement, elements);
+  transfer(stagingBuffer, target, 0, firstElement, elements);
 }
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Buffer & source,
@@ -458,7 +458,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer & source,
                                                              &footprint, nullptr, nullptr, nullptr);
     CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint),
       targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
-    this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+    handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
   }
 }
 
@@ -470,7 +470,7 @@ void DirectX12CommandBuffer::transfer(const void * const data, size_t size,
                                                               ResourceHeap::Staging, size)));
   stagingBuffer->map(data, size, 0);
 
-  this->transfer(stagingBuffer, target, 0, subresource, 1);
+  transfer(stagingBuffer, target, 0, subresource, 1);
 }
 
 void DirectX12CommandBuffer::transfer(Span<const void * const> data, size_t elementSize,
@@ -483,7 +483,7 @@ void DirectX12CommandBuffer::transfer(Span<const void * const> data, size_t elem
                                                     elementSize, elements)));
   stagingBuffer->map(data, elementSize, 0);
 
-  this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
+  transfer(stagingBuffer, target, 0, firstSubresource, subresources);
 }
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Image & source,
@@ -507,7 +507,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image & source,
     CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(),
                                                  sourceSubresource + sr),
       targetLocation(std::as_const(target).handle().Get(), targetSubresource + sr);
-    this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+    handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
   }
 }
 
@@ -537,7 +537,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image & source,
                                                              nullptr);
     CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint),
       targetLocation(std::as_const(target).handle().Get(), targetElement + sr);
-    this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+    handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
   }
 }
 
@@ -545,7 +545,7 @@ void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source,
                                       const IDirectX12Buffer & target, UInt32 sourceElement,
                                       UInt32 targetElement, UInt32 elements) const
 {
-  this->transfer(*source, target, sourceElement, targetElement, elements);
+  transfer(*source, target, sourceElement, targetElement, elements);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -553,7 +553,7 @@ void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source,
                                       const IDirectX12Image & target, UInt32 sourceElement,
                                       UInt32 firstSubresource, UInt32 elements) const
 {
-  this->transfer(*source, target, sourceElement, firstSubresource, elements);
+  transfer(*source, target, sourceElement, firstSubresource, elements);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -561,7 +561,7 @@ void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source,
                                       const IDirectX12Image & target, UInt32 sourceSubresource,
                                       UInt32 targetSubresource, UInt32 subresources) const
 {
-  this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
+  transfer(*source, target, sourceSubresource, targetSubresource, subresources);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -569,7 +569,7 @@ void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source,
                                       const IDirectX12Buffer & target, UInt32 firstSubresource,
                                       UInt32 targetElement, UInt32 subresources) const
 {
-  this->transfer(*source, target, firstSubresource, targetElement, subresources);
+  transfer(*source, target, firstSubresource, targetElement, subresources);
   m_impl->m_sharedResources.push_back(source);
 }
 
@@ -621,23 +621,23 @@ void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet *> descripto
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer & buffer) const noexcept
 {
-  this->handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
+  handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12IndexBuffer & buffer) const noexcept
 {
-  this->handle()->IASetIndexBuffer(&buffer.view());
+  handle()->IASetIndexBuffer(&buffer.view());
 }
 
 void DirectX12CommandBuffer::dispatch(const Vector3u & threadCount) const noexcept
 {
-  this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
+  handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer & batchBuffer,
                                               UInt32 batchCount, UInt64 offset) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), batchCount,
+  handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), batchCount,
                                   batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
@@ -645,7 +645,7 @@ void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer & batchBuff
                                               const IDirectX12Buffer & countBuffer, UInt64 offset,
                                               UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(),
+  handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(),
                                   std::min(maxBatches,
                                            static_cast<UInt32>(batchBuffer.alignedElementSize() /
                                                                sizeof(IndirectDispatchBatch))),
@@ -655,13 +655,13 @@ void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer & batchBuff
 
 void DirectX12CommandBuffer::dispatchMesh(const Vector3u & threadCount) const noexcept
 {
-  this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
+  handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer & batchBuffer,
                                                   UInt32 batchCount, UInt64 offset) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(), batchCount,
+  handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(), batchCount,
                                   batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
@@ -670,7 +670,7 @@ void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer & batch
                                                   UInt64 offset, UInt64 countOffset,
                                                   UInt32 maxBatches) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(),
+  handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(),
                                   std::min(maxBatches,
                                            static_cast<UInt32>(batchBuffer.alignedElementSize() /
                                                                sizeof(IndirectDispatchBatch))),
@@ -681,13 +681,13 @@ void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer & batch
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex,
                                   UInt32 firstInstance) const noexcept
 {
-  this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
+  handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
 }
 
 void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer & batchBuffer, UInt32 batchCount,
                                           UInt64 offset) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), batchCount,
+  handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), batchCount,
                                   batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
@@ -695,7 +695,7 @@ void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer & batchBuffer,
                                           const IDirectX12Buffer & countBuffer, UInt64 offset,
                                           UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(),
+  handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(),
                                   std::min(maxBatches,
                                            static_cast<UInt32>(batchBuffer.alignedElementSize() /
                                                                sizeof(IndirectBatch))),
@@ -706,13 +706,13 @@ void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer & batchBuffer,
 void DirectX12CommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex,
                                          Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
-  this->handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
+  handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer & batchBuffer,
                                                  UInt32 batchCount, UInt64 offset) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), batchCount,
+  handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), batchCount,
                                   batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
@@ -721,7 +721,7 @@ void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer & batchB
                                                  UInt64 offset, UInt64 countOffset,
                                                  UInt32 maxBatches) const noexcept
 {
-  this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(),
+  handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(),
                                   std::min(maxBatches,
                                            static_cast<UInt32>(batchBuffer.alignedElementSize() /
                                                                sizeof(IndirectIndexedBatch))),
@@ -735,7 +735,7 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout & 
   std::ranges::for_each(layout.ranges(),
                         [this, &layout, &memory](const DirectX12PushConstantsRange * range)
                         {
-                          this->handle()
+                          handle()
                             ->SetGraphicsRoot32BitConstants(range->rootParameterIndex(),
                                                             range->size() / 4,
                                                             reinterpret_cast<const char * const>(
@@ -750,20 +750,20 @@ void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timin
   if (timingEvent == nullptr) [[unlikely]]
     throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
-  this->handle()->EndQuery(m_impl->m_queue.device().swapChain().timestampQueryHeap(),
+  handle()->EndQuery(m_impl->m_queue.device().swapChain().timestampQueryHeap(),
                            D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
 }
 
 void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
 {
-  this->handle()->ExecuteBundle(commandBuffer->handle().Get());
+  handle()->ExecuteBundle(commandBuffer->handle().Get());
 }
 
 void DirectX12CommandBuffer::execute(
   Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
   std::ranges::for_each(commandBuffers, [this](auto & bundle)
-                        { this->handle()->ExecuteBundle(bundle->handle().Get()); });
+                        { handle()->ExecuteBundle(bundle->handle().Get()); });
 }
 
 void DirectX12CommandBuffer::releaseSharedState() const { m_impl->m_sharedResources.clear(); }
@@ -804,7 +804,7 @@ void DirectX12CommandBuffer::copyAccelerationStructure(
   const DirectX12BottomLevelAccelerationStructure & from,
   const DirectX12BottomLevelAccelerationStructure & to, bool compress) const noexcept
 {
-  this->handle()->CopyRaytracingAccelerationStructure(
+  handle()->CopyRaytracingAccelerationStructure(
     to.buffer()->virtualAddress() + to.offset(), from.buffer()->virtualAddress() + from.offset(),
     compress ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT
              : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE);
@@ -814,7 +814,7 @@ void DirectX12CommandBuffer::copyAccelerationStructure(
   const DirectX12TopLevelAccelerationStructure & from,
   const DirectX12TopLevelAccelerationStructure & to, bool compress) const noexcept
 {
-  this->handle()->CopyRaytracingAccelerationStructure(
+  handle()->CopyRaytracingAccelerationStructure(
     to.buffer()->virtualAddress() + to.offset(), from.buffer()->virtualAddress() + from.offset(),
     compress ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT
              : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE);
@@ -856,5 +856,5 @@ void DirectX12CommandBuffer::traceRays(
       .StrideInBytes = offsets.CallableGroupStride,
     };
 
-  this->handle()->DispatchRays(&rayDesc);
+  handle()->DispatchRays(&rayDesc);
 }

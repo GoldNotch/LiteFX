@@ -138,7 +138,7 @@ public:
   /// </summary>
   /// <param name="...args">The arguments passed to the function.</param>
   /// <returns>The result of the delegate function call.</returns>
-  inline TResult operator()(TArgs... args) const { return this->invoke(args...); }
+  inline TResult operator()(TArgs... args) const { return invoke(args...); }
 };
 
 /// <summary>
@@ -194,7 +194,7 @@ public:
   /// </summary>
   /// <param name="subscriber">A delegate for the event handler.</param>
   /// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-  bool remove(delegate_type subscriber) noexcept { return this->remove(subscriber.token()); }
+  bool remove(delegate_type subscriber) noexcept { return remove(subscriber.token()); }
 
   /// <summary>
   /// Unsubscribes an event handler from the event.
@@ -269,28 +269,28 @@ public:
   /// </summary>
   /// <param name="subscriber">A delegate for the event handler.</param>
   /// <returns>A unique token of the event handler.</returns>
-  event_token_type operator+=(function_type subscriber) { return this->add(subscriber); }
+  event_token_type operator+=(function_type subscriber) { return add(subscriber); }
 
   /// <summary>
   /// Unsubscribes an event handler from the event.
   /// </summary>
   /// <param name="subscriber">A delegate for the event handler.</param>
   /// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-  bool operator-=(delegate_type subscriber) noexcept { return this->remove(subscriber); }
+  bool operator-=(delegate_type subscriber) noexcept { return remove(subscriber); }
 
   /// <summary>
   /// Unsubscribes an event handler from the event.
   /// </summary>
   /// <param name="toke">The unique token of the event handler.</param>
   /// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-  bool operator-=(event_token_type token) noexcept { return this->remove(token); }
+  bool operator-=(event_token_type token) noexcept { return remove(token); }
 
   /// <summary>
   /// Invokes all event handlers of the event.
   /// </summary>
   /// <param name="sender">The source of the event.</param>
   /// <param name="args">The additional event arguments.</param>
-  void operator()(const void * sender, TEventArgs args) const { this->invoke(sender, args); }
+  void operator()(const void * sender, TEventArgs args) const { invoke(sender, args); }
 
   /// <summary>
   /// Returns the delegate associated with <paramref name="token" />.
@@ -298,7 +298,7 @@ public:
   /// <param name="token">The token to query for.</param>
   /// <returns>A reference of the delegate associated with <paramref name="token" />.</returns>
   /// <exception cref="InvalidArgumentException">Thrown, if the event does not have a subscriber with the provided token.</exception>
-  const delegate_type & operator[](event_token_type token) const { return this->handler(token); }
+  const delegate_type & operator[](event_token_type token) const { return handler(token); }
 };
 
 /// <summary>
@@ -420,7 +420,7 @@ protected:
     requires meta::implements<TBackend, IBackend>
   TBackend * findBackend()
   {
-    return dynamic_cast<TBackend *>(this->getBackend(typeid(TBackend)));
+    return dynamic_cast<TBackend *>(getBackend(typeid(TBackend)));
   }
 
   /// <summary>
@@ -513,10 +513,10 @@ public:
     requires meta::implements<TBackend, IBackend>
   void onBackendStart(const std::function<bool(TBackend *)> & callback)
   {
-    this->registerStartCallback(typeid(TBackend),
+    registerStartCallback(typeid(TBackend),
                                 [this, callback]()
                                 {
-                                  auto backend = this->findBackend<TBackend>();
+                                  auto backend = findBackend<TBackend>();
 
                                   if (backend == nullptr)
                                     throw InvalidArgumentException(
@@ -545,10 +545,10 @@ public:
     requires meta::implements<TBackend, IBackend>
   void onBackendStop(const std::function<void(TBackend *)> & callback)
   {
-    this->registerStopCallback(typeid(TBackend),
+    registerStopCallback(typeid(TBackend),
                                [this, callback]()
                                {
-                                 auto backend = this->findBackend<TBackend>();
+                                 auto backend = findBackend<TBackend>();
 
                                  if (backend == nullptr)
                                    throw InvalidArgumentException(
@@ -570,7 +570,7 @@ public:
     requires meta::implements<TBackend, IBackend>
   const TBackend * findBackend() const
   {
-    return dynamic_cast<const TBackend *>(this->getBackend(typeid(TBackend)));
+    return dynamic_cast<const TBackend *>(getBackend(typeid(TBackend)));
   }
 
   /// <summary>
@@ -582,7 +582,7 @@ public:
     requires meta::implements<TBackend, IBackend>
   void startBackend()
   {
-    this->startBackend(typeid(TBackend));
+    startBackend(typeid(TBackend));
   }
 
   /// <summary>
@@ -594,7 +594,7 @@ public:
     requires meta::implements<TBackend, IBackend>
   void stopBackend()
   {
-    this->stopBackend(typeid(TBackend));
+    stopBackend(typeid(TBackend));
   }
 
 public:
@@ -680,7 +680,7 @@ public:
     requires meta::implements<TBackend, IBackend>
   AppBuilder & useBackend(TArgs &&... args)
   {
-    this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
+    use(makeUnique<TBackend>(*instance(), std::forward<TArgs>(args)...));
     return *this;
   }
 };

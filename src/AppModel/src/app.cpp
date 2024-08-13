@@ -37,7 +37,7 @@ App::~App() noexcept
   for (auto & backend : m_impl->m_backends |
                           std::views::filter([](const auto & b)
                                              { return b.second->state() == BackendState::Active; }))
-    this->stopBackend(backend.first);
+    stopBackend(backend.first);
 }
 
 Platform App::platform() const noexcept
@@ -49,7 +49,7 @@ Platform App::platform() const noexcept
 #endif
 }
 
-const IBackend * App::operator[](std::type_index type) const { return this->getBackend(type); }
+const IBackend * App::operator[](std::type_index type) const { return getBackend(type); }
 
 const IBackend * App::getBackend(std::type_index type) const
 {
@@ -63,7 +63,7 @@ IBackend * App::getBackend(std::type_index type)
 
 void App::startBackend(std::type_index type) const
 {
-  auto backend = const_cast<IBackend *>(this->getBackend(type));
+  auto backend = const_cast<IBackend *>(getBackend(type));
 
   if (backend == nullptr)
     throw InvalidArgumentException("type", "No backend of type {0} has been registered.",
@@ -73,7 +73,7 @@ void App::startBackend(std::type_index type) const
     return;
 
   // Stop all active backends.
-  this->stopActiveBackends(backend->type());
+  stopActiveBackends(backend->type());
 
   // Call the start callbacks for the backend.
   const auto callbacks = m_impl->m_startCallbacks.equal_range(type);
@@ -86,12 +86,12 @@ void App::startBackend(std::type_index type) const
   backend->activate();
 
   // Publish event.
-  this->backendStarted(this, backend);
+  backendStarted(this, backend);
 }
 
 void App::stopBackend(std::type_index type) const
 {
-  auto backend = const_cast<IBackend *>(this->getBackend(type));
+  auto backend = const_cast<IBackend *>(getBackend(type));
 
   if (backend == nullptr)
     throw InvalidArgumentException("type", "No backend of type {0} has been registered.",
@@ -109,7 +109,7 @@ void App::stopBackend(std::type_index type) const
     static_cast<IBackend *>(backend)->deactivate();
 
     // Publish event.
-    this->backendStopped(this, backend);
+    backendStopped(this, backend);
   }
 }
 
@@ -120,7 +120,7 @@ void App::stopActiveBackends(BackendType type) const
                                                  return b.second->type() == type &&
                                                         b.second->state() == BackendState::Active;
                                                }))
-    this->stopBackend(backend.first);
+    stopBackend(backend.first);
 }
 
 IBackend * App::activeBackend(BackendType type) const
@@ -176,41 +176,41 @@ void App::use(UniquePtr<IBackend> && backend)
 
   m_impl->m_backends[type] = std::move(backend);
 
-  Logger::get(this->name()).debug("Registered backend type {0}.", type.name());
+  Logger::get(name()).debug("Registered backend type {0}.", type.name());
 }
 
 void App::run()
 {
   // Initialize the app.
-  Logger::get(this->name()).debug("Initializing app...");
-  this->initializing(this, {});
+  Logger::get(name()).debug("Initializing app...");
+  initializing(this, {});
 
   // Start the app.
-  Logger::get(this->name())
-    .info("Starting app (Version {1}) on platform {0}...", this->platform(), this->version());
-  Logger::get(this->name()).debug("Using engine: {0:e}.", this->version());
+  Logger::get(name())
+    .info("Starting app (Version {1}) on platform {0}...", platform(), version());
+  Logger::get(name()).debug("Using engine: {0:e}.", version());
 
   // Start the first registered rendering backend for each backend type.
   for (BackendType type : VALID_BACKEND_TYPES)
   {
-    auto backends = this->getBackends(type);
+    auto backends = getBackends(type);
 
     if (!backends.empty())
-      this->startBackend(backends.front()->typeId());
+      startBackend(backends.front()->typeId());
   }
 
   // Fire startup event.
-  this->startup(this, {});
+  startup(this, {});
 
   // Shutdown the app.
-  Logger::get(this->name()).debug("Shutting down app...", this->version());
+  Logger::get(name()).debug("Shutting down app...", version());
 
   for (auto & backend : m_impl->m_backends |
                           std::views::filter([](const auto & b)
                                              { return b.second->state() == BackendState::Active; }))
-    this->stopBackend(backend.first);
+    stopBackend(backend.first);
 
-  this->shutdown(this, {});
+  shutdown(this, {});
 }
 
 void App::resize(int width, int height)
@@ -220,12 +220,12 @@ void App::resize(int width, int height)
   height = std::max(height, 1);
 
   // Publish event.
-  Logger::get(this->name()).trace("OnResize (width = {0}, height = {1}).", width, height);
-  this->resized(this, {width, height});
+  Logger::get(name()).trace("OnResize (width = {0}, height = {1}).", width, height);
+  resized(this, {width, height});
 }
 
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-void AppBuilder::use(UniquePtr<IBackend> && backend) { this->instance()->use(std::move(backend)); }
+void AppBuilder::use(UniquePtr<IBackend> && backend) { instance()->use(std::move(backend)); }

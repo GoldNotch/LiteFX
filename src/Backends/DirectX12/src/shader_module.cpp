@@ -75,7 +75,7 @@ DirectX12ShaderModule::DirectX12ShaderModule(
                                                 shaderLocalDescriptor))
   , ComResource<IDxcBlob>(nullptr)
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 DirectX12ShaderModule::DirectX12ShaderModule(
@@ -85,7 +85,7 @@ DirectX12ShaderModule::DirectX12ShaderModule(
                                                 shaderLocalDescriptor))
   , ComResource<IDxcBlob>(nullptr)
 {
-  this->handle() = m_impl->initialize(stream);
+  handle() = m_impl->initialize(stream);
 }
 
 DirectX12ShaderModule::~DirectX12ShaderModule() noexcept = default;

@@ -51,7 +51,7 @@ VulkanSurface::VulkanSurface(const VkSurfaceKHR & surface, const VkInstance & pa
 
 VulkanSurface::~VulkanSurface() noexcept
 {
-  ::vkDestroySurfaceKHR(m_impl->m_instance, this->handle(), nullptr);
+  ::vkDestroySurfaceKHR(m_impl->m_instance, handle(), nullptr);
 }
 
 const VkInstance & VulkanSurface::instance() const noexcept { return m_impl->m_instance; }

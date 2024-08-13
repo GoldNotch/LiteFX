@@ -148,7 +148,7 @@ public:
     raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_1,
                                       IID_PPV_ARGS(&device)),
                   "Unable to create DirectX 12 device.");
-    this->checkRequiredExtensions(device.Get(), features);
+    checkRequiredExtensions(device.Get(), features);
 
 #ifndef NDEBUG
     // Try to query an info queue to forward log messages.
@@ -272,9 +272,9 @@ public:
   void createQueues()
   {
     //m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::Realtime);
-    m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::High);
-    m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::High);
-    m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::High);
+    m_graphicsQueue = createQueue(QueueType::Graphics, QueuePriority::High);
+    m_transferQueue = createQueue(QueueType::Transfer, QueuePriority::High);
+    m_computeQueue = createQueue(QueueType::Compute, QueuePriority::High);
   }
 
   DirectX12Queue * createQueue(QueueType type, QueuePriority priority)
@@ -383,7 +383,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend & backend,
   LITEFX_DEBUG(DIRECTX12_LOG,
                "--------------------------------------------------------------------------");
 
-  this->handle() = m_impl->initialize(features);
+  handle() = m_impl->initialize(features);
   m_impl->createQueues();
   m_impl->createFactory();
   m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
@@ -520,7 +520,7 @@ void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet & des
     CD3DX12_CPU_DESCRIPTOR_HANDLE
       sourceHandle(descriptorSet.bufferHeap()->GetCPUDescriptorHandleForHeapStart(),
                    firstDescriptor, m_impl->m_bufferDescriptorIncrement);
-    this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle,
+    handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle,
                                           D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
   }
 }
@@ -538,7 +538,7 @@ void DirectX12Device::updateSamplerDescriptors(const DirectX12DescriptorSet & de
     CD3DX12_CPU_DESCRIPTOR_HANDLE
       sourceHandle(descriptorSet.samplerHeap()->GetCPUDescriptorHandleForHeapStart(),
                    firstDescriptor, m_impl->m_samplerDescriptorIncrement);
-    this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle,
+    handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle,
                                           D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
   }
 }
@@ -645,7 +645,7 @@ DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline(const Stri
 DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(
   ShaderRecordCollection && shaderRecords) const
 {
-  return this->buildRayTracingPipeline("", std::move(shaderRecords));
+  return buildRayTracingPipeline("", std::move(shaderRecords));
 }
 
 DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(
@@ -744,7 +744,7 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) con
   {
     levels.SampleCount = std::to_underlying(allLevels[level]);
 
-    if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+    if (FAILED(handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
                                                    &levels, sizeof(levels))))
       continue;
 
@@ -776,7 +776,7 @@ void DirectX12Device::wait() const
              [this, i = 0]() mutable -> event_type
              {
                ComPtr<ID3D12Fence> fence;
-               raiseIfFailed(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+               raiseIfFailed(handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE,
                                                          IID_PPV_ARGS(&fence)),
                              "Unable to create queue synchronization fence.");
 
@@ -836,7 +836,7 @@ void DirectX12Device::computeAccelerationStructureSizes(
      .pGeometryDescs = descriptions.data()};
 
   // Get the prebuild info and align the buffer sizes.
-  this->handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
+  handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
   bufferSize =
     (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) &
     ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
@@ -865,7 +865,7 @@ void DirectX12Device::computeAccelerationStructureSizes(
      .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY};
 
   // Get the prebuild info and align the buffer sizes.
-  this->handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
+  handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
   bufferSize =
     (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) &
     ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);

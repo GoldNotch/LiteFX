@@ -27,7 +27,7 @@ public:
   {
   }
 
-  ~VulkanFrameBufferImpl() { this->cleanup(); }
+  ~VulkanFrameBufferImpl() { cleanup(); }
 
 public:
   void cleanup()
@@ -77,7 +77,7 @@ public:
     };
 
     // Destroy the previous image views.
-    this->cleanup();
+    cleanup();
 
     // Create the image views for each image.
     m_renderTargetHandles = m_images | std::views::transform(getImageView) |
@@ -142,7 +142,7 @@ public:
     m_images = std::move(images);
 
     // Re-initialize to update heaps and descriptors.
-    this->initialize();
+    initialize();
 
     // Wait for the fence to finish.
     queue.waitFor(fence);
@@ -228,7 +228,7 @@ void VulkanFrameBuffer::mapRenderTarget(const RenderTarget & renderTarget, Strin
                                         [nameHash](UniquePtr<IVulkanImage> & image)
                                         { return hash(image->name()) == nameHash; });
       match != m_impl->m_images.end())
-    this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+    mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
   else
     throw InvalidArgumentException(
       "name", "The frame buffer does not contain an image with the name \"{0}\".", name);
@@ -350,7 +350,7 @@ void VulkanFrameBuffer::addImage(const String & name, const RenderTarget & rende
   m_impl->initialize();
 
   // Map the render target to the image.
-  this->mapRenderTarget(renderTarget, static_cast<UInt32>(index));
+  mapRenderTarget(renderTarget, static_cast<UInt32>(index));
 
   // Wait for the fence to finish.
   queue.waitFor(fence);
@@ -360,5 +360,5 @@ void VulkanFrameBuffer::resize(const Size2d & renderArea)
 {
   // Reset the size and re-initialize the frame buffer.
   m_impl->resize(renderArea);
-  this->resized(this, {renderArea});
+  resized(this, {renderArea});
 }

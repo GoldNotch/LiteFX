@@ -75,7 +75,7 @@ public:
 
   void updateGlobalBuffers(UInt32 offset, UInt32 descriptors)
   {
-    m_layout.device().updateBufferDescriptors(*this->m_parent, offset, descriptors);
+    m_layout.device().updateBufferDescriptors(*m_parent, offset, descriptors);
   }
 };
 

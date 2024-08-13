@@ -206,19 +206,19 @@ DirectX12BarrierBuilder::~DirectX12BarrierBuilder() noexcept = default;
 
 void DirectX12BarrierBuilder::setupStages(PipelineStage waitFor, PipelineStage continueWith)
 {
-  this->instance()->syncBefore() = waitFor;
-  this->instance()->syncAfter() = continueWith;
+  instance()->syncBefore() = waitFor;
+  instance()->syncAfter() = continueWith;
 }
 
 void DirectX12BarrierBuilder::setupGlobalBarrier(ResourceAccess before, ResourceAccess after)
 {
-  this->instance()->wait(before, after);
+  instance()->wait(before, after);
 }
 
 void DirectX12BarrierBuilder::setupBufferBarrier(IBuffer & buffer, ResourceAccess before,
                                                  ResourceAccess after)
 {
-  this->instance()->transition(buffer, before, after);
+  instance()->transition(buffer, before, after);
 }
 
 void DirectX12BarrierBuilder::setupImageBarrier(IImage & image, ResourceAccess before,
@@ -228,7 +228,7 @@ void DirectX12BarrierBuilder::setupImageBarrier(IImage & image, ResourceAccess b
 {
   auto numLevels = levels > 0 ? levels : image.levels() - level;
   auto numLayers = layers > 0 ? layers : image.layers() - layer;
-  this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after,
+  instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after,
                                layout);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

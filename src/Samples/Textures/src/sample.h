@@ -81,10 +81,10 @@ public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
 	{
-		this->initializing += std::bind(&SampleApp::onInit, this);
-		this->startup += std::bind(&SampleApp::onStartup, this);
-		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
-		this->shutdown += std::bind(&SampleApp::onShutdown, this);
+		initializing += std::bind(&SampleApp::onInit, this);
+		startup += std::bind(&SampleApp::onStartup, this);
+		resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
+		shutdown += std::bind(&SampleApp::onShutdown, this);
 	}
 
 public:

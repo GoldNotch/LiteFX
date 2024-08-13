@@ -576,7 +576,7 @@ public:
 private:
   SharedPtr<IPipelineLayout> parsePipelineLayout() const override
   {
-    return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+    return std::static_pointer_cast<IPipelineLayout>(reflectPipelineLayout());
   }
 };
 
@@ -1503,7 +1503,7 @@ private:
     if (vkQueue == nullptr) [[unlikely]]
       throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
 
-    this->waitFor(*vkQueue, fence);
+    waitFor(*vkQueue, fence);
   }
 };
 
@@ -1794,7 +1794,7 @@ public:
   Enumerable<const IVulkanImage *> images() const noexcept override;
 
   /// <inheritdoc />
-  inline const IVulkanImage & operator[](UInt32 index) const { return this->image(index); }
+  inline const IVulkanImage & operator[](UInt32 index) const { return image(index); }
 
   /// <inheritdoc />
   const IVulkanImage & image(UInt32 index) const override;
@@ -1802,7 +1802,7 @@ public:
   /// <inheritdoc />
   inline const IVulkanImage & operator[](const RenderTarget & renderTarget) const
   {
-    return this->image(renderTarget);
+    return image(renderTarget);
   }
 
   /// <inheritdoc />
@@ -1811,13 +1811,13 @@ public:
   /// <inheritdoc />
   inline const IVulkanImage & operator[](StringView renderTargetName) const override
   {
-    return this->resolveImage(hash(renderTargetName));
+    return resolveImage(hash(renderTargetName));
   }
 
   /// <inheritdoc />
   inline const IVulkanImage & image(StringView renderTargetName) const override
   {
-    return this->resolveImage(hash(renderTargetName));
+    return resolveImage(hash(renderTargetName));
   }
 
   /// <inheritdoc />

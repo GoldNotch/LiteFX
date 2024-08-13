@@ -59,21 +59,21 @@ public:
 VulkanImage::VulkanImage(const VulkanDevice & device, VkImage image, const Size3d & extent,
                          Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers,
                          MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator,
-                         VmaAllocation allocation, const String & name)
+                         VmaAllocation allocation, const String & name_)
   : m_impl(makePimpl<VulkanImageImpl>(this, device, extent, format, dimensions, levels, layers,
                                       samples, usage, allocator, allocation))
   , Resource<VkImage>(image)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 VulkanImage::~VulkanImage() noexcept
 {
   if (m_impl->m_allocator != nullptr && m_impl->m_allocationInfo != nullptr)
   {
-    ::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocationInfo);
-    LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", reinterpret_cast<void *>(this->handle()));
+    ::vmaDestroyImage(m_impl->m_allocator, handle(), m_impl->m_allocationInfo);
+    LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", reinterpret_cast<void *>(handle()));
   }
 }
 
@@ -99,7 +99,7 @@ size_t VulkanImage::size() const noexcept
   }
 }
 
-size_t VulkanImage::elementSize() const noexcept { return this->size(); }
+size_t VulkanImage::elementSize() const noexcept { return size(); }
 
 size_t VulkanImage::elementAlignment() const noexcept
 {
@@ -112,7 +112,7 @@ size_t VulkanImage::elementAlignment() const noexcept
 size_t VulkanImage::alignedElementSize() const noexcept
 {
   // TODO: Align this by `elementAlignment`.
-  return this->elementSize();
+  return elementSize();
 }
 
 ResourceUsage VulkanImage::usage() const noexcept { return m_impl->m_usage; }
@@ -130,16 +130,16 @@ size_t VulkanImage::size(UInt32 level) const noexcept
   if (level >= m_impl->m_levels)
     return 0;
 
-  auto size = this->extent(level);
+  auto size = extent(level);
 
-  switch (this->dimensions())
+  switch (dimensions())
   {
-    case ImageDimensions::DIM_1: return ::getSize(this->format()) * size.width();
+    case ImageDimensions::DIM_1: return ::getSize(format()) * size.width();
     case ImageDimensions::CUBE:
-    case ImageDimensions::DIM_2: return ::getSize(this->format()) * size.width() * size.height();
+    case ImageDimensions::DIM_2: return ::getSize(format()) * size.width() * size.height();
     default:
     case ImageDimensions::DIM_3:
-      return ::getSize(this->format()) * size.width() * size.height() * size.depth();
+      return ::getSize(format()) * size.width() * size.height() * size.depth();
   }
 }
 
@@ -399,21 +399,21 @@ public:
 VulkanSampler::VulkanSampler(const VulkanDevice & device, FilterMode magFilter,
                              FilterMode minFilter, BorderMode borderU, BorderMode borderV,
                              BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias,
-                             Float minLod, Float maxLod, Float anisotropy, const String & name)
+                             Float minLod, Float maxLod, Float anisotropy, const String & name_)
   : Resource<VkSampler>(VK_NULL_HANDLE)
   , m_impl(makePimpl<VulkanSamplerImpl>(this, device, magFilter, minFilter, borderU, borderV,
                                         borderW, mipMapMode, mipMapBias, minLod, maxLod,
                                         anisotropy))
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 }
 
 VulkanSampler::~VulkanSampler() noexcept
 {
-  ::vkDestroySampler(m_impl->m_device.handle(), this->handle(), nullptr);
+  ::vkDestroySampler(m_impl->m_device.handle(), handle(), nullptr);
 }
 
 FilterMode VulkanSampler::getMinifyingFilter() const noexcept { return m_impl->m_minFilter; }

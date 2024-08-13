@@ -299,7 +299,7 @@ UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(
   const Enumerable<DescriptorBinding> & bindings) const
 {
-  return this->allocate(0, bindings);
+  return allocate(0, bindings);
 }
 
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(
@@ -351,13 +351,13 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(
   UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>> & bindings) const
 {
-  return this->allocateMultiple(descriptorSets, 0, bindings);
+  return allocateMultiple(descriptorSets, 0, bindings);
 }
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(
   UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
-  return this->allocateMultiple(descriptorSets, 0, bindingFactory);
+  return allocateMultiple(descriptorSets, 0, bindingFactory);
 }
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(
@@ -368,10 +368,10 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
           &count]() mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>>
   {
     for (auto & binding : bindings)
-      co_yield this->allocate(descriptors, binding);
+      co_yield allocate(descriptors, binding);
 
     for (int i = static_cast<int>(bindings.size()); i < count; ++i)
-      co_yield this->allocate(descriptors);
+      co_yield allocate(descriptors);
   }() | std::views::as_rvalue;
 }
 
@@ -383,7 +383,7 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
           &count]() -> std::generator<UniquePtr<DirectX12DescriptorSet>>
   {
     for (int i = 0; i < count; ++i)
-      co_yield this->allocate(descriptors, bindingFactory(i));
+      co_yield allocate(descriptors, bindingFactory(i));
   }() | std::views::as_rvalue;
 }
 
@@ -414,11 +414,11 @@ DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noex
 
 void DirectX12DescriptorSetLayoutBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layouts = std::move(m_state.descriptorLayouts);
-  instance->m_impl->m_space = std::move(m_state.space);
-  instance->m_impl->m_stages = std::move(m_state.stages);
-  instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_layouts = std::move(m_state.descriptorLayouts);
+  _instance->m_impl->m_space = std::move(m_state.space);
+  _instance->m_impl->m_stages = std::move(m_state.stages);
+  _instance->m_impl->initialize();
 }
 
 UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(
@@ -432,7 +432,7 @@ UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDe
   BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod,
   Float maxLod, Float anisotropy)
 {
-  return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(),
+  return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(parent().device(),
                                                                             magFilter, minFilter,
                                                                             borderU, borderV,
                                                                             borderW, mipMapMode,

@@ -746,7 +746,7 @@ public:
   /// </summary>
   constexpr [[nodiscard]] operator TPointer &&()
   {
-    this->build();
+    build();
     return std::move(m_instance);
   }
 };
@@ -837,7 +837,7 @@ public:
   /// </summary>
   constexpr [[nodiscard]] TParent & add()
   {
-    this->build();
+    build();
     m_parent.use(std::move(m_instance));
     return m_parent;
   }

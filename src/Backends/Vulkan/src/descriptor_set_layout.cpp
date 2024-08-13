@@ -315,10 +315,7 @@ public:
     m_descriptorPools.push_back(descriptorPool);
   }
 
-  VkDescriptorSet tryAllocate(UInt32 descriptors)
-  {
-    return this->tryAllocate(1u, descriptors).front();
-  }
+  VkDescriptorSet tryAllocate(UInt32 descriptors) { return tryAllocate(1u, descriptors).front(); }
 
   Array<VkDescriptorSet> tryAllocate(UInt32 descriptorSets, UInt32 descriptorsPerSet)
   {
@@ -329,7 +326,7 @@ public:
       throw RuntimeException("Cannot allocate descriptor set from empty layout.");
 
     // Start by reserving enough space for all descriptor sets.
-    this->reserve(descriptorSets);
+    reserve(descriptorSets);
 
     // Allocate the descriptor sets.
     Array<VkDescriptorSetLayout> layouts(descriptorSets, m_parent->handle());
@@ -378,7 +375,7 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(
                                                     space, stages))
   , Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice & device) noexcept
@@ -392,7 +389,7 @@ VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
   // Release descriptor pools and destroy the descriptor set layouts. Releasing the pools also frees the descriptor sets allocated from it.
   std::ranges::for_each(m_impl->m_descriptorPools, [this](const VkDescriptorPool & pool)
                         { ::vkDestroyDescriptorPool(m_impl->m_device.handle(), pool, nullptr); });
-  ::vkDestroyDescriptorSetLayout(m_impl->m_device.handle(), this->handle(), nullptr);
+  ::vkDestroyDescriptorSetLayout(m_impl->m_device.handle(), handle(), nullptr);
 }
 
 const VulkanDevice & VulkanDescriptorSetLayout::device() const noexcept { return m_impl->m_device; }
@@ -465,7 +462,7 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
 UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(
   const Enumerable<DescriptorBinding> & bindings) const
 {
-  return this->allocate(0, bindings);
+  return allocate(0, bindings);
 }
 
 UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(
@@ -524,13 +521,13 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(
   UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>> & bindings) const
 {
-  return this->allocateMultiple(descriptorSets, 0, bindings);
+  return allocateMultiple(descriptorSets, 0, bindings);
 }
 
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(
   UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
-  return this->allocateMultiple(descriptorSets, 0, bindingFactory);
+  return allocateMultiple(descriptorSets, 0, bindingFactory);
 }
 
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(
@@ -721,11 +718,11 @@ VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept =
 
 void VulkanDescriptorSetLayoutBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);
-  instance->m_impl->m_space = std::move(m_state.space);
-  instance->m_impl->m_stages = std::move(m_state.stages);
-  instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);
+  _instance->m_impl->m_space = std::move(m_state.space);
+  _instance->m_impl->m_stages = std::move(m_state.stages);
+  _instance->m_impl->initialize();
 }
 
 UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(
@@ -739,9 +736,9 @@ UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescript
   BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod,
   Float maxLod, Float anisotropy)
 {
-  return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(),
-                                                                      magFilter, minFilter, borderU,
-                                                                      borderV, borderW, mipMapMode,
+  return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(parent().device(), magFilter,
+                                                                      minFilter, borderU, borderV,
+                                                                      borderW, mipMapMode,
                                                                       mipMapBias, minLod, maxLod,
                                                                       anisotropy),
                                             binding);

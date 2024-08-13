@@ -56,7 +56,7 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType ty
                                                                    UInt32 elements,
                                                                    ResourceUsage usage) const
 {
-  return this->createBuffer("", type, heap, elementSize, elements, usage);
+  return createBuffer("", type, heap, elementSize, elements, usage);
 }
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(
@@ -136,7 +136,7 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(
   const DirectX12VertexBufferLayout & layout, ResourceHeap heap, UInt32 elements,
   ResourceUsage usage) const
 {
-  return this->createVertexBuffer("", layout, heap, elements, usage);
+  return createVertexBuffer("", layout, heap, elements, usage);
 }
 
 UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(
@@ -187,7 +187,7 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(
   const DirectX12IndexBufferLayout & layout, ResourceHeap heap, UInt32 elements,
   ResourceUsage usage) const
 {
-  return this->createIndexBuffer("", layout, heap, elements, usage);
+  return createIndexBuffer("", layout, heap, elements, usage);
 }
 
 UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(
@@ -238,7 +238,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(
   Format format, const Size3d & size, ImageDimensions dimension, UInt32 levels, UInt32 layers,
   MultiSamplingLevel samples, ResourceUsage usage) const
 {
-  return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
+  return createTexture("", format, size, dimension, levels, layers, samples, usage);
 }
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(
@@ -307,7 +307,7 @@ Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(
   return [&, this]() -> std::generator<UniquePtr<IDirectX12Image>>
   {
     for (UInt32 i = 0; i < elements; ++i)
-      co_yield this->createTexture(format, size, dimension, levels, layers, samples, usage);
+      co_yield createTexture(format, size, dimension, levels, layers, samples, usage);
   }() | std::views::as_rvalue;
 }
 
@@ -338,7 +338,7 @@ Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSampler
   return [&, this]() -> std::generator<UniquePtr<IDirectX12Sampler>>
   {
     for (UInt32 i = 0; i < elements; ++i)
-      co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
+      co_yield createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
                                    mipMapBias, maxLod, minLod, anisotropy);
   }() | std::views::as_rvalue;
 }

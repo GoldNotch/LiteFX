@@ -112,8 +112,8 @@ private:
 
     bool equals(const DescriptorInfo & rhs)
     {
-      return this->location == rhs.location && this->elements == rhs.elements &&
-             this->elementSize == rhs.elementSize && this->type == rhs.type;
+      return location == rhs.location && elements == rhs.elements &&
+             elementSize == rhs.elementSize && type == rhs.type;
     }
   };
 
@@ -589,8 +589,8 @@ VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
 void VulkanShaderProgramBuilder::build()
 {
-  this->instance()->m_impl->m_modules = std::move(m_state.modules);
-  this->instance()->m_impl->validate();
+  instance()->m_impl->m_modules = std::move(m_state.modules);
+  instance()->m_impl->validate();
 }
 
 UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(

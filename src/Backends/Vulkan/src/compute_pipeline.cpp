@@ -82,14 +82,14 @@ public:
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice & device,
                                              SharedPtr<VulkanPipelineLayout> layout,
                                              SharedPtr<VulkanShaderProgram> shaderProgram,
-                                             const String & name)
+                                             const String & name_)
   : m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, layout, shaderProgram))
   , VulkanPipelineState(VK_NULL_HANDLE)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 
-  this->handle() = m_impl->initialize();
+  handle() = m_impl->initialize();
 }
 
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice & device) noexcept
@@ -100,7 +100,7 @@ VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice & device) noexce
 
 VulkanComputePipeline::~VulkanComputePipeline() noexcept
 {
-  ::vkDestroyPipeline(m_impl->m_device.handle(), this->handle(), nullptr);
+  ::vkDestroyPipeline(m_impl->m_device.handle(), handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanComputePipeline::program() const noexcept
@@ -115,7 +115,7 @@ SharedPtr<const VulkanPipelineLayout> VulkanComputePipeline::layout() const noex
 
 void VulkanComputePipeline::use(const VulkanCommandBuffer & commandBuffer) const noexcept
 {
-  ::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
+  ::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, handle());
 }
 
 void VulkanComputePipeline::bind(const VulkanCommandBuffer & commandBuffer,
@@ -172,16 +172,16 @@ VulkanComputePipelineBuilder::VulkanComputePipelineBuilder(const VulkanDevice & 
                                                            const String & name)
   : ComputePipelineBuilder(UniquePtr<VulkanComputePipeline>(new VulkanComputePipeline(device)))
 {
-  this->instance()->name() = name;
+  instance()->name() = name;
 }
 
 VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default;
 
 void VulkanComputePipelineBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layout = m_state.pipelineLayout;
-  instance->m_impl->m_program = m_state.shaderProgram;
-  instance->handle() = instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_layout = m_state.pipelineLayout;
+  _instance->m_impl->m_program = m_state.shaderProgram;
+  _instance->handle() = _instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

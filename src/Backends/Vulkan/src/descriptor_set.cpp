@@ -73,7 +73,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer & buffer, U
 
   VkWriteDescriptorSet descriptorWrite{};
   descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  descriptorWrite.dstSet = this->handle();
+  descriptorWrite.dstSet = handle();
   descriptorWrite.dstBinding = binding;
   descriptorWrite.dstArrayElement = firstDescriptor;
   descriptorWrite.descriptorCount = 1;
@@ -212,7 +212,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage & texture, U
   VkDescriptorImageInfo imageInfo{};
   VkWriteDescriptorSet descriptorWrite{};
   descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  descriptorWrite.dstSet = this->handle();
+  descriptorWrite.dstSet = handle();
   descriptorWrite.dstBinding = binding;
   descriptorWrite.dstArrayElement = descriptor;
   descriptorWrite.descriptorCount = 1;
@@ -319,7 +319,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler & sampler,
   VkWriteDescriptorSet descriptorWrite{};
   descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-  descriptorWrite.dstSet = this->handle();
+  descriptorWrite.dstSet = handle();
   descriptorWrite.dstBinding = binding;
   descriptorWrite.dstArrayElement = descriptor;
   descriptorWrite.descriptorCount = 1;
@@ -365,7 +365,7 @@ void VulkanDescriptorSet::update(UInt32 binding,
 
   VkWriteDescriptorSet descriptorWrite = {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                                           .pNext = &accelerationStructureInfo,
-                                          .dstSet = this->handle(),
+                                          .dstSet = handle(),
                                           .dstBinding = binding,
                                           .dstArrayElement = descriptor,
                                           .descriptorCount = 1,

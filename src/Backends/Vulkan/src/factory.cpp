@@ -57,7 +57,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, Re
                                                              size_t elementSize, UInt32 elements,
                                                              ResourceUsage usage) const
 {
-  return this->createBuffer("", type, heap, elementSize, elements, usage);
+  return createBuffer("", type, heap, elementSize, elements, usage);
 }
 
 UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String & name, BufferType type,
@@ -176,7 +176,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(
   const VulkanVertexBufferLayout & layout, ResourceHeap heap, UInt32 elements,
   ResourceUsage usage) const
 {
-  return this->createVertexBuffer("", layout, heap, elements, usage);
+  return createVertexBuffer("", layout, heap, elements, usage);
 }
 
 UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(
@@ -246,7 +246,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(
   const VulkanIndexBufferLayout & layout, ResourceHeap heap, UInt32 elements,
   ResourceUsage usage) const
 {
-  return this->createIndexBuffer("", layout, heap, elements, usage);
+  return createIndexBuffer("", layout, heap, elements, usage);
 }
 
 UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(
@@ -321,7 +321,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, cons
                                                              MultiSamplingLevel samples,
                                                              ResourceUsage usage) const
 {
-  return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
+  return createTexture("", format, size, dimension, levels, layers, samples, usage);
 }
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(
@@ -403,7 +403,7 @@ Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(
   return [&, this]() -> std::generator<UniquePtr<IVulkanImage>>
   {
     for (UInt32 i = 0; i < elements; ++i)
-      co_yield this->createTexture(format, size, dimension, levels, layers, samples, usage);
+      co_yield createTexture(format, size, dimension, levels, layers, samples, usage);
   }() | std::views::as_rvalue;
 }
 
@@ -443,7 +443,7 @@ Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(
   return [&, this]() -> std::generator<UniquePtr<IVulkanSampler>>
   {
     for (UInt32 i = 0; i < elements; ++i)
-      co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
+      co_yield createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode,
                                    mipMapBias, maxLod, minLod, anisotropy);
   }() | std::views::as_rvalue;
 }

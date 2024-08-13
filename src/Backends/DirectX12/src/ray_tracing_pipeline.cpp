@@ -12,8 +12,8 @@ struct LocalDescriptorBindingPoint
 
   inline bool operator==(const LocalDescriptorBindingPoint & other) const noexcept
   {
-    return other.Type == this->Type && other.BindingPoint.Register == this->BindingPoint.Register &&
-           other.BindingPoint.Space == this->BindingPoint.Space;
+    return other.Type == Type && other.BindingPoint.Register == BindingPoint.Register &&
+           other.BindingPoint.Space == BindingPoint.Space;
   }
 };
 
@@ -676,14 +676,14 @@ public:
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(
   const DirectX12Device & device, SharedPtr<DirectX12PipelineLayout> layout,
   SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection && shaderRecords,
-  UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String & name)
+  UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String & name_)
   : m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram,
                                                       maxRecursionDepth, maxPayloadSize,
                                                       maxAttributeSize, std::move(shaderRecords)))
   , DirectX12PipelineState(nullptr)
 {
-  if (!name.empty())
-    this->name() = name;
+  if (!name_.empty())
+    name() = name_;
 
   m_impl->initialize();
 }
@@ -754,18 +754,18 @@ DirectX12RayTracingPipelineBuilder::DirectX12RayTracingPipelineBuilder(
   : RayTracingPipelineBuilder(UniquePtr<DirectX12RayTracingPipeline>(
       new DirectX12RayTracingPipeline(device, std::move(shaderRecords))))
 {
-  this->instance()->name() = name;
+  instance()->name() = name;
 }
 
 DirectX12RayTracingPipelineBuilder::~DirectX12RayTracingPipelineBuilder() noexcept = default;
 
 void DirectX12RayTracingPipelineBuilder::build()
 {
-  auto instance = this->instance();
-  instance->m_impl->m_layout = m_state.pipelineLayout;
-  instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
-  instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
-  instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
-  instance->m_impl->initialize();
+  auto && _instance = instance();
+  _instance->m_impl->m_layout = m_state.pipelineLayout;
+  _instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
+  _instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
+  _instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
+  _instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
